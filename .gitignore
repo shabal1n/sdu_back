@@ -1,0 +1,7 @@
+db.sqlite3
+env/
+sdu/pycache/
+sdu/main/pycache/
+.DS_Store
+sdu/__pycache__/
+sdu/main/__pycache__/
