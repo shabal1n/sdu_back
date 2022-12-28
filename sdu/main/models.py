@@ -39,12 +39,11 @@ class Statuses(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    sdu_id = models.CharField(max_length=9, blank=False)
-    admission_year = models.IntegerField(blank=False)
-    sdu_mail = models.EmailField(max_length=24, blank=False)
-    language = models.CharField(max_length=2, blank=False)
-    case_of_study = models.ForeignKey(StudyCases, blank=False, on_delete=models.CASCADE)
-    role = models.OneToOneField(Roles, blank=False, on_delete=models.CASCADE)
+    year_of_study = models.CharField(blank=False, max_length=9)
+    birth_date = models.CharField(blank=False, max_length=10)
+    language = models.CharField(max_length=2, blank=False, default="en")
+    course_of_study = models.CharField(max_length=10, blank=False)
+    # role = models.OneToOneField(Roles, blank=False, on_delete=models.CASCADE, default=1)
     picture_url = models.CharField(max_length=100, blank=True)
     
     def __str__(self):
