@@ -11,64 +11,16 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ['url', 'username', 'email', 'groups', 'password']
 
-
-class ProfileSerializer(serializers.HyperlinkedModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
+    status = serializers.CharField(source='status.title')
     class Meta:
         model = Profile
-        fields = ['user', 'sdu_id', 'admission_year', 'sdu_id', 'sdu_mail', 'language', 'case_of_study', 
-        'role', 'picture_url']
-
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Group
-        fields = ['url', 'name']
-
-class CoursesSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Courses
-        fields = ['url', 'title', 'teacher']
-
-class RolesSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Roles
-        fields = ['url', 'title']
-
-class PrioritiesSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Priorities
-        fields = ['title']
-
-class AttachmentsSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Attachments
-        fields = ['url', 'task', 'title', 'url']
-
-class StudyCasesSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = StudyCases
-        fields = ['url', 'title']
-    
-class TasksSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Tasks
-        fields = ['url', 'title', 'project', 'assigned_to', 'priority', 'deadline',
-         'description', 'created_at', 'status']
-
-class ProjectsSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Projects
-        fields = ['url', 'title', 'priority', 'deadline', 'course']
-
-class StatusesSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Statuses
-        fields = ['url', 'title']
-
-class TasksSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Tasks
-        fields = ['url', 'title', 'project', 'assigned_to', 'priority', 'deadline',
-         'description', 'created_at', 'status']
+        fields = [
+            'username', 'email', 'year_of_study', 'status', 'birth_date', 
+            'language', 'course_of_study', 'picture_url'
+                ]
 
 class ProfilePatchSerializer(serializers.ModelSerializer):
     class Meta:

@@ -43,7 +43,7 @@ class Profile(models.Model):
     birth_date = models.CharField(blank=False, max_length=10)
     language = models.CharField(max_length=2, blank=False, default="en")
     course_of_study = models.CharField(max_length=10, blank=False)
-    # role = models.OneToOneField(Roles, blank=False, on_delete=models.CASCADE, default=1)
+    status = models.ForeignKey(Statuses, blank=True, on_delete=models.CASCADE, default=1)
     picture_url = models.CharField(max_length=100, blank=True)
     
     def __str__(self):
@@ -62,7 +62,6 @@ class Tasks(models.Model):
     title = models.CharField(max_length=25, blank=False)
     project = models.ForeignKey(Projects, on_delete=models.CASCADE)
     assigned_to = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    priority = models.OneToOneField(Priorities, blank=False, on_delete=models.CASCADE)
     deadline = models.DateField(blank=False)
     description = models.CharField(max_length=100, blank=False)
     created_at = models.DateField(blank=False)

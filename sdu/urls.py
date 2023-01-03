@@ -10,13 +10,7 @@ from rest_framework_simplejwt.views import (
 
 
 router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'groups', views.GroupViewSet)
-# router.register(r'courses', views.CoursesViewSet)
 router.register(r'profile', views.ProfileViewSet)
-router.register(r'projects', views.ProjectsViewSet)
-# router.register(r'priority', views.PrioritiesViewSet)
-router.register(r'tasks', views.TasksViewSet)
 
 schema_view = get_schema_view(
    openapi.Info(
