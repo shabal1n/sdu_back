@@ -1,3 +1,4 @@
+from datetime import date
 from django.contrib.auth.models import User, Group
 from sdu.main.models import *
 from rest_framework import serializers
@@ -21,6 +22,34 @@ class ProfileSerializer(serializers.ModelSerializer):
             'username', 'email', 'year_of_study', 'status', 'birth_date', 
             'language', 'course_of_study', 'picture_url'
                 ]
+
+
+class ProjectsSerializer(serializers.ModelSerializer):
+    participants = ProfileSerializer(many=True, read_only=True)
+    class Meta:
+        model = Projects
+        fields = ['title', 'priority', 'deadline', 'course', 'participants']
+        extra_kwargs = {
+            'title': {'required': True},
+            'priority': {'required': True},
+            'deadline': {'required': True},
+            'course': {'required': True},
+            'participants': {'required': False}
+        }
+
+    def validate(self, attrs):
+        if attrs['deadline'] < date.today():
+            raise serializers.ValidationError("Deadline cannot be in the past")
+        elif self.context['request'].user.profile.is_supervisor == 1:
+            raise serializers.ValidationError("Only students can create projects")
+        return attrs
+
+    def create(self, validated_data):
+        project = Projects.objects.create(**validated_data)
+        project.participants.add(self.context['request'].user.profile)
+        project.save()
+        return project
+    
 
 class ProfilePatchSerializer(serializers.ModelSerializer):
     class Meta:
@@ -64,7 +93,6 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
-
         return attrs
 
 
