@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -65,8 +66,8 @@ class Tasks(models.Model):
     assigned_to = models.ManyToManyField(Profile)
     deadline = models.DateField(blank=False)
     description = models.CharField(max_length=100, blank=False)
-    created_at = models.DateField(blank=False)
-    status = models.OneToOneField(Statuses, blank=False, on_delete=models.CASCADE)
+    created_at = models.DateField(blank=False, default=datetime.date.today)
+    status = models.CharField(max_length=20, blank=False, default="New")
 
     def __str__(self):
         return self.project.title + " " + self.title

@@ -12,6 +12,7 @@ from rest_framework_simplejwt.views import (
 router = routers.DefaultRouter()
 router.register(r'profile', views.ProfileViewSet)
 router.register(r'projects', views.ProjectsViewSet)
+router.register(r'tasks', views.TasksViewSet)
 
 schema_view = get_schema_view(
    openapi.Info(

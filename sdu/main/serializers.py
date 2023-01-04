@@ -1,4 +1,5 @@
 from datetime import date
+import django
 from django.contrib.auth.models import User, Group
 from sdu.main.models import *
 from rest_framework import serializers
@@ -6,6 +7,7 @@ from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from datetime import date
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -40,7 +42,7 @@ class ProjectsSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['deadline'] < date.today():
             raise serializers.ValidationError("Deadline cannot be in the past")
-        elif self.context['request'].user.profile.is_supervisor == 1:
+        elif self.context['request'].user.profile.is_supervisor == 1: #TODO change to 0
             raise serializers.ValidationError("Only students can create projects")
         return attrs
 
@@ -49,6 +51,39 @@ class ProjectsSerializer(serializers.ModelSerializer):
         project.participants.add(self.context['request'].user.profile)
         project.save()
         return project
+
+
+class TasksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tasks
+        fields = [
+                'title', 'assigned_to', 'deadline', 'created_at',
+                'description', 'project', 'status'
+                ]
+        extra_kwargs = {
+            'title': {'required': True},
+            'assigned_to': {'required': False},
+            'deadline': {'required': True},
+            'created_at': {'required': False},
+            'description': {'required': True},
+            'project': {'required': True},
+            'status': {'required': True}
+        }
+
+    def validate(self, attrs):
+        if self.context['request'].user.profile.is_supervisor == 1: #TODO change to 0
+            raise serializers.ValidationError("Only supervisors can create tasks")
+        return attrs
+
+    def create(self, validated_data):
+        task = Tasks.objects.create(
+                                title=validated_data['title'], deadline=validated_data['deadline'],
+                                description=validated_data['description'], project=validated_data['project'], 
+                                status=validated_data['status']
+                                )
+        task.assigned_to.add(self.context['request'].user.profile)
+        task.save()
+        return task
     
 
 class ProfilePatchSerializer(serializers.ModelSerializer):
