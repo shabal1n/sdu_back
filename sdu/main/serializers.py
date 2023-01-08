@@ -1,6 +1,7 @@
 from datetime import date
 import django
 from django.contrib.auth.models import User, Group
+from django.http import HttpResponse
 from sdu.main.models import *
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -25,7 +26,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             'language', 'course_of_study', 'picture_url'
                 ]
 
-
 class ProjectsSerializer(serializers.ModelSerializer):
     participants = ProfileSerializer(many=True, read_only=True)
     class Meta:
@@ -42,7 +42,7 @@ class ProjectsSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['deadline'] < date.today():
             raise serializers.ValidationError("Deadline cannot be in the past")
-        elif self.context['request'].user.profile.is_supervisor == 1: #TODO change to 0
+        elif self.context['request'].user.profile.is_supervisor == 0:
             raise serializers.ValidationError("Only students can create projects")
         return attrs
 
@@ -71,7 +71,7 @@ class TasksSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        if self.context['request'].user.profile.is_supervisor == 1: #TODO change to 0
+        if self.context['request'].user.profile.is_supervisor == 0:
             raise serializers.ValidationError("Only supervisors can create tasks")
         return attrs
 
@@ -147,3 +147,46 @@ class RegisterSerializer(serializers.ModelSerializer):
         profile.save()
 
         return user
+
+class DashboardSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    is_advisor = serializers.BooleanField(source='profile.is_advisor', read_only=True)
+    # profile_projects = serializers.SerializerMethodField(source='projects', read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ['username', 'is_advisor']
+
+    def profile_projects(self, obj):
+        data = serializers.serialize('json', Projects.objects.filter(participants=obj))
+        return HttpResponse(data, content_type="application/json")
+
+
+
+class ProfilePageSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    is_advisor = serializers.CharField(source='profile.is_advisor', read_only=True)
+    status = serializers.CharField(source='status.title')
+    complete_tasks = serializers.SerializerMethodField()
+    pending_tasks = serializers.SerializerMethodField()
+    projects = serializers.SerializerMethodField()
+    total_tasks = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = [
+            'username', 'is_advisor', 'status', 'complete_tasks', 
+            'pending_tasks', 'projects', 'total_tasks'
+        ]
+
+    def get_complete_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=obj, status=3).count()
+    
+    def get_pending_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=obj, status=2).count()
+
+    def get_projects(self, obj):
+        return Projects.objects.filter(participants=obj).count()
+    
+    def get_total_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=obj).count()

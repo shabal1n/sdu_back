@@ -31,7 +31,7 @@ class Languages(models.Model):
     def __str__(self):
         return self.title
 
-class Statuses(models.Model):
+class UserStatuses(models.Model):
     title = models.CharField(max_length=25, blank=False)
 
     def __str__(self):
@@ -43,7 +43,7 @@ class Profile(models.Model):
     birth_date = models.CharField(blank=False, max_length=10)
     language = models.CharField(max_length=2, blank=False, default="en")
     course_of_study = models.CharField(max_length=10, blank=False)
-    status = models.ForeignKey(Statuses, blank=True, on_delete=models.CASCADE, default=1)
+    status = models.ForeignKey(UserStatuses, blank=True, on_delete=models.CASCADE, default=1)
     is_supervisor = models.BooleanField(default=False)
     picture_url = models.CharField(max_length=100, blank=True)
     
@@ -60,6 +60,12 @@ class Projects(models.Model):
     def __str__(self):
         return self.title + " " + self.course.title
 
+class TaskStatuses(models.Model):
+    title = models.CharField(max_length=25, blank=False)
+
+    def __str__(self):
+        return self.title
+
 class Tasks(models.Model):
     title = models.CharField(max_length=25, blank=False)
     project = models.ForeignKey(Projects, on_delete=models.CASCADE)
@@ -67,7 +73,7 @@ class Tasks(models.Model):
     deadline = models.DateField(blank=False)
     description = models.CharField(max_length=100, blank=False)
     created_at = models.DateField(blank=False, default=datetime.date.today)
-    status = models.CharField(max_length=20, blank=False, default="New")
+    status = models.ForeignKey(TaskStatuses, blank=False, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.project.title + " " + self.title
