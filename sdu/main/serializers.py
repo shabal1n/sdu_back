@@ -54,11 +54,15 @@ class ProjectsSerializer(serializers.ModelSerializer):
 
 
 class TasksSerializer(serializers.ModelSerializer):
+    subtasks_quantity = serializers.SerializerMethodField()
+    completed_subtasks_quantity = serializers.SerializerMethodField()
+
     class Meta:
         model = Tasks
         fields = [
                 'title', 'assigned_to', 'deadline', 'created_at',
-                'description', 'project', 'status'
+                'description', 'project', 'status', 'subtasks_quantity',
+                'completed_subtasks_quantity'
                 ]
         extra_kwargs = {
             'title': {'required': True},
@@ -74,6 +78,12 @@ class TasksSerializer(serializers.ModelSerializer):
         if self.context['request'].user.profile.is_supervisor == 0:
             raise serializers.ValidationError("Only supervisors can create tasks")
         return attrs
+
+    def get_subtasks_quantity(self, obj):
+        return Subtasks.objects.filter(task=obj).count()
+
+    def get_completed_subtasks_quantity(self, obj):
+        return Subtasks.objects.filter(task=obj, is_completed=1).count()
 
     def create(self, validated_data):
         task = Tasks.objects.create(
@@ -148,18 +158,33 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return user
 
-class DashboardSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
-    is_advisor = serializers.BooleanField(source='profile.is_advisor', read_only=True)
-    # profile_projects = serializers.SerializerMethodField(source='projects', read_only=True)
+class DashboardSerializer(serializers.ModelSerializer): #TODO may be rethink the solution
+    username = serializers.SerializerMethodField()
+    is_advisor = serializers.SerializerMethodField()
+    complete_tasks = serializers.SerializerMethodField()
+    in_progress_tasks = serializers.SerializerMethodField()
+    proposed_tasks = serializers.SerializerMethodField()
 
     class Meta:
-        model = Profile
-        fields = ['username', 'is_advisor']
+        model = Projects
+        fields = '__all__'
 
-    def profile_projects(self, obj):
-        data = serializers.serialize('json', Projects.objects.filter(participants=obj))
-        return HttpResponse(data, content_type="application/json")
+    def get_username(self, obj):
+        return self.context['request'].user.username
+
+    def get_is_advisor(self, obj):
+        if self.context['request'].user.profile.is_supervisor == 1:
+            return 'Supervisor'
+        return 'Student'
+
+    def get_complete_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=3).count()
+    
+    def get_in_progress_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=2).count()
+
+    def get_proposed_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=1).count()
 
 
 

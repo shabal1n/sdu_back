@@ -74,7 +74,7 @@ class DashboardView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         profile = Profile.objects.filter(user=self.request.user.id)
-        return profile
+        return Projects.objects.filter(participants=profile[0].id)
     
 class ProfilePageView(viewsets.ModelViewSet):
     queryset = Profile.objects.all()

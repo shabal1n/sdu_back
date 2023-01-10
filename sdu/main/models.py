@@ -73,10 +73,19 @@ class Tasks(models.Model):
     deadline = models.DateField(blank=False)
     description = models.CharField(max_length=100, blank=False)
     created_at = models.DateField(blank=False, default=datetime.date.today)
+    completed_at = models.DateField(blank=True, null=True)
     status = models.ForeignKey(TaskStatuses, blank=False, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.project.title + " " + self.title
+
+class Subtasks(models.Model):
+    task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
+    title = models.CharField(max_length=25, blank=False)
+    is_completed = models.BooleanField(blank=False, null=False, default=False)
+
+    def __str__(self):
+        return self.task.title + " " + self.title
 
 class Attachments(models.Model):
     task = models.ForeignKey(Tasks, on_delete=models.CASCADE)
