@@ -58,6 +58,30 @@ class TasksViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(tasks, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['GET'], name='Get Task Details')
+    def details(self, request):
+        task = Tasks.objects.get(id=self.request.data['task_id'])
+        serializer = TasksDetailSerializer(task)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['POST'], name='Edit Task Data')
+    def edit(self, request):
+        task = Tasks.objects.get(id=self.request.data['task_id'])
+        task.assigned_to.add(Profile.objects.get(id=self.request.data['assigned_to']))
+        task.title = self.request.data['title']
+        task.deadline = self.request.data['deadline']
+        task.description = self.request.data['description']
+        task.status = TaskStatuses.objects.get(id=self.request.data['status'])
+        task.save()
+        return Response('Task edited')
+    
+    @action(detail=False, methods=['DELETE'], name='Delete Task')
+    def delete(self, request):
+        task = Tasks.objects.get(id=self.request.data['task_id'])
+        task.delete()
+        return Response('Task deleted')
+
+
 
 class MyObtainTokenPairView(TokenObtainPairView):
     permission_classes = (AllowAny,)

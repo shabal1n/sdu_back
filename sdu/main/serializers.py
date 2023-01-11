@@ -94,6 +94,34 @@ class TasksSerializer(serializers.ModelSerializer):
         task.assigned_to.add(self.context['request'].user.profile)
         task.save()
         return task
+
+class SubtasksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subtasks
+        fields = ['title', 'task', 'is_completed']
+        extra_kwargs = {
+            'title': {'required': True},
+            'task': {'required': True},
+            'is_completed': {'required': False}
+        }
+
+class TasksDetailSerializer(serializers.ModelSerializer):
+    assigned_to = serializers.SerializerMethodField()
+    project = serializers.SerializerMethodField()
+    subtasks = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Tasks
+        fields = '__all__'
+
+    def get_assigned_to(self, obj):
+        return ProfileSerializer(obj.assigned_to.all(), many=True).data
+
+    def get_project(self, obj):
+        return ProjectsSerializer(obj.project).data
+
+    def get_subtasks(self, obj):
+        return SubtasksSerializer(obj.subtasks_set.all(), many=True).data
     
 
 class ProfilePatchSerializer(serializers.ModelSerializer):
