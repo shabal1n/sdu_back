@@ -188,33 +188,42 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return user
 
-class DashboardSerializer(serializers.ModelSerializer): #TODO may be rethink the solution
+class DashboardSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
     is_advisor = serializers.SerializerMethodField()
     complete_tasks = serializers.SerializerMethodField()
+    total_tasks = serializers.SerializerMethodField()
     in_progress_tasks = serializers.SerializerMethodField()
     proposed_tasks = serializers.SerializerMethodField()
+    projects = serializers.SerializerMethodField()
 
     class Meta:
-        model = Projects
+        model = Profile
         fields = '__all__'
 
     def get_username(self, obj):
         return self.context['request'].user.username
 
     def get_is_advisor(self, obj):
-        if self.context['request'].user.profile.is_supervisor == 1:
+        if obj.is_supervisor == 1:
             return 'Supervisor'
         return 'Student'
 
+    def get_total_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=obj).count()
+
     def get_complete_tasks(self, obj):
-        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=3).count()
+        return Tasks.objects.filter(assigned_to=obj, status=3).count()
     
     def get_in_progress_tasks(self, obj):
-        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=2).count()
+        return Tasks.objects.filter(assigned_to=obj, status=2).count()
 
     def get_proposed_tasks(self, obj):
-        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=1).count()
+        return Tasks.objects.filter(assigned_to=obj, status=1).count()
+
+    def get_projects(self, obj):
+        projects = Projects.objects.filter(participants=obj)
+        return ProjectsSerializer(projects, many=True).data
 
 
 

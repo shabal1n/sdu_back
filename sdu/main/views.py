@@ -93,12 +93,12 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
 class DashboardView(viewsets.ModelViewSet):
-    queryset = Projects.objects.all()
+    queryset = Profile.objects.all()
     serializer_class = DashboardSerializer
 
     def get_queryset(self):
-        profile = Profile.objects.filter(user=self.request.user.id)
-        return Projects.objects.filter(participants=profile[0].id)
+        return Profile.objects.filter(user=self.request.user.id)
+
     
 class ProfilePageView(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
