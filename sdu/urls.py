@@ -14,6 +14,7 @@ router.register(r'profile', views.ProfilePageView)
 router.register(r'projects', views.ProjectsViewSet)
 router.register(r'tasks', views.TasksViewSet)
 router.register(r'dashboard', views.DashboardView, basename='dashboard')
+router.register(r'analytics', views.AnalyticsPageViewSet)
 
 schema_view = get_schema_view(
    openapi.Info(

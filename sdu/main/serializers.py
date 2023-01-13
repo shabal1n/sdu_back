@@ -1,4 +1,7 @@
-from datetime import date
+import datetime
+import calendar
+from dateutil.relativedelta import relativedelta
+from datetime import datetime, date
 import django
 from django.contrib.auth.models import User, Group
 from django.http import HttpResponse
@@ -8,7 +11,6 @@ from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from datetime import date
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -243,3 +245,112 @@ class ProfilePageSerializer(serializers.ModelSerializer):
     
     def get_total_tasks(self, obj):
         return Tasks.objects.filter(assigned_to=obj).count()
+
+class AnalyticsSerializer(serializers.ModelSerializer):
+    participants = serializers.SerializerMethodField()
+    assigned_tasks = serializers.SerializerMethodField()
+    tasks_count_by_days = serializers.SerializerMethodField()
+    completed_tasks = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Projects
+        fields = '__all__'
+    
+    def get_participants(self, obj):
+        return ProfileSerializer(obj.participants.all(), many=True).data
+
+    def get_assigned_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile).count()
+    
+    def get_completed_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=3).count()
+
+    def get_tasks_count_by_days(self, obj): #TODO check if correct
+        tasks_of_project = Tasks.objects.filter(project=obj)
+        today_weekday = datetime.datetime.now()
+        tasks_count_by_days = {}
+        for i in range(6, 0, -1):
+            day = today_weekday - datetime.timedelta(days=i)
+            tasks_count_by_days[day.weekday()] = tasks_of_project.filter(created_at=day).count()
+        tasks_count_by_days[today_weekday.weekday()] = tasks_of_project.filter(created_at=today_weekday).count()
+        return tasks_count_by_days
+    
+class AnalyticsExtendedSerializer(serializers.ModelSerializer):
+    assigned_tasks = serializers.SerializerMethodField()
+    tasks_count_by_days = serializers.SerializerMethodField()
+    completed_tasks = serializers.SerializerMethodField()
+    tasks_by_hours = serializers.SerializerMethodField()
+    tasks_this_month = serializers.SerializerMethodField()
+    completed_this_month = serializers.SerializerMethodField()
+    completed_today = serializers.SerializerMethodField()
+    tasks_this_year = serializers.SerializerMethodField()
+    completed_this_year = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Projects
+        fields = ['assigned_tasks', 'tasks_count_by_days', 'completed_tasks', 
+                'tasks_by_hours', 'completed_today', 'completed_this_month',
+                'tasks_this_month', 'tasks_this_year', 'completed_this_year'
+                ]
+
+    def get_assigned_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile).count()
+    
+    def get_completed_tasks(self, obj):
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=3).count()
+
+    def get_tasks_count_by_days(self, obj): #TODO check if correct
+        tasks_of_project = Tasks.objects.filter(project=obj)
+        today_weekday = datetime.datetime.now()
+        tasks_count_by_days = {}
+        for i in range(6, 0, -1):
+            day = today_weekday - datetime.timedelta(days=i)
+            tasks_count_by_days[day.weekday()] = tasks_of_project.filter(created_at=day).count()
+        tasks_count_by_days[today_weekday.weekday()] = tasks_of_project.filter(created_at=today_weekday).count()
+        return tasks_count_by_days
+
+    def get_tasks_by_hours(self, obj):
+        tasks_of_project = Tasks.objects.filter(project=obj)
+        today = datetime.datetime.now()
+        tasks_count_by_hours = {}
+        for i in range(23, 0, -1):
+            hour = today - datetime.timedelta(hours=i)
+            tasks_count_by_hours[hour.hour] = tasks_of_project.filter(created_at=hour).count()
+        tasks_count_by_hours[today.hour] = tasks_of_project.filter(created_at=today).count()
+        return tasks_count_by_hours
+
+    def get_completed_this_month(self, obj):
+        today = datetime.datetime.now()
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, created_at__month=today.month).count()
+        
+    def get_tasks_this_month(self, obj):
+        tasks_of_project = Tasks.objects.filter(project=obj)
+        today = datetime.datetime.now()
+        month_days = calendar.monthrange(today.year, today.month)[1]
+        tasks_count_by_this_month = {}
+        for i in range(month_days, 0, -1):
+            day = today - datetime.timedelta(days=i)
+            tasks_count_by_this_month[day.day] = tasks_of_project.filter(created_at=day).count()
+        return tasks_count_by_this_month
+
+    def get_tasks_this_year(self, obj):
+        tasks_of_project = Tasks.objects.filter(project=obj)
+        today = datetime.datetime.now()
+        tasks_count_by_this_year = {}
+        for i in range(12, 0, -1):
+            month = today - relativedelta(months=-i)
+            tasks_count_by_this_year[month.month] = tasks_of_project.filter(created_at__month=month.month).count()
+        return tasks_count_by_this_year
+
+    def get_completed_this_year(self, obj):
+        today = datetime.datetime.now()
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=3, completed_at__year=today.year).count()
+
+
+    def completed_this_week(self, obj):
+        today = datetime.datetime.now()
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=3, completed_at__week=today.weekday).count()
+
+    def get_completed_today(self, obj):
+        today = datetime.datetime.now()
+        return Tasks.objects.filter(assigned_to=self.context['request'].user.profile, status=3, completed_at=today).count()

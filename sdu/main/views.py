@@ -126,3 +126,20 @@ class ProfilePageView(viewsets.ModelViewSet):
         profile.save()
         serializer = ProfileSerializer(profile)
         return Response(serializer.data)
+
+class AnalyticsPageViewSet(viewsets.ModelViewSet):
+    queryset = Projects.objects.all()
+    serializer_class = AnalyticsSerializer
+
+    def get(self, request, format=None):
+        profile = Profile.objects.filter(user=self.request.user.id)
+        projects = Projects.objects.filter(participants=profile[0].id)
+        serializer = self.get_serializer(projects, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'], name='Get Analytics Data')
+    def extended(self, request):
+        profile = Profile.objects.filter(user=self.request.user.id)
+        projects = Projects.objects.filter(participants=profile[0].id)
+        serializer = AnalyticsExtendedSerializer(projects, context={'request':request}, many=True)
+        return Response(serializer.data)
