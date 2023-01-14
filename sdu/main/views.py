@@ -189,7 +189,6 @@ class FriendsViewSet(viewsets.ModelViewSet):
         friend_request = FriendRequest.objects.get(
             from_user=user.id, to_user=self.request.user.id
         )
-        print("FRIEND:", friend_request, "USER:", user.id, "SELF:", self.request.user.id)
         if friend_request:
             friend_list = FriendsList.objects.get_or_create(user=self.request.user)
             friend_list[0].add_friend(user)
