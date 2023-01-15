@@ -197,3 +197,15 @@ class FriendsViewSet(viewsets.ModelViewSet):
             return Response("Friend request accepted")
         else:
             return Response("Friend request not found")
+
+    @action(detail=False, methods=["POST"], name="Decline friend request")
+    def decline_request(self, request):
+        user = User.objects.get(id=self.request.data["user_id"])
+        friend_request = FriendRequest.objects.get(
+            from_user=user.id, to_user=self.request.user.id
+        )
+        if friend_request:
+            friend_request.delete()
+            return Response("Friend request declined")
+        else:
+            return Response("Friend request not found")

@@ -439,10 +439,14 @@ class AnalyticsExtendedSerializer(serializers.ModelSerializer):
         ).count()
 
 class FriendRequestsSerializer(serializers.ModelSerializer):
-    from_user = serializers.RelatedField(read_only=True).to_representation()
+    # from_user = serializers.RelatedField(read_only=True).to_representation()
+    from_user = serializers.SerializerMethodField()
     class Meta:
         model = FriendRequest
         fields = ['from_user', 'is_active', 'timestamp']
+
+    def get_from_user(self, obj):
+        return obj.from_user.username
 
 
 class FriendsSerializer(serializers.ModelSerializer):
