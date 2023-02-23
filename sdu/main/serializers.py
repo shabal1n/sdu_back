@@ -269,7 +269,7 @@ class DashboardSerializer(serializers.ModelSerializer):
         if obj.is_supervisor == 1:
             students = Profile.objects.filter(supervisor=obj.user)
             return ProfileSerializer(students, many=True).data
-        return False
+        return []
 
 
 class ProfilePageSerializer(serializers.ModelSerializer):
