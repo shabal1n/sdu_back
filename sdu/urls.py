@@ -14,6 +14,7 @@ router.register(r"projects", views.ProjectsViewSet)
 router.register(r"tasks", views.TasksViewSet)
 router.register(r"dashboard", views.DashboardView)
 router.register(r"analytics", views.AnalyticsPageViewSet)
+router.register(r"friends", views.FriendsViewSet)
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -32,7 +33,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("", include(router.urls)),
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     path("login/", views.MyObtainTokenPairView.as_view(), name="token_obtain_pair"),
     path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("register/", views.RegisterView.as_view(), name="auth_register"),

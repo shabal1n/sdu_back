@@ -1,5 +1,4 @@
 from django.contrib import admin
-
 from sdu.main.models import *
 
 # Register your models here.
