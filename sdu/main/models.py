@@ -56,6 +56,9 @@ class Profile(models.Model):
     )
     is_supervisor = models.BooleanField(default=False)
     picture_url = models.CharField(max_length=100, blank=True)
+    supervisor = models.ForeignKey(
+        User, related_name="supervisor", on_delete=models.CASCADE, null=True, blank=True
+    )
 
     def __str__(self):
         return self.user.username
@@ -106,7 +109,7 @@ class FriendRequest(models.Model):
     def decline(self):
         self.is_active = False
         self.save()
-    
+
     def get_from_user(self):
         return self.from_user
 

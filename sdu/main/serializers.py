@@ -235,6 +235,7 @@ class DashboardSerializer(serializers.ModelSerializer):
     in_progress_tasks = serializers.SerializerMethodField()
     proposed_tasks = serializers.SerializerMethodField()
     projects = serializers.SerializerMethodField()
+    students = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -263,6 +264,12 @@ class DashboardSerializer(serializers.ModelSerializer):
     def get_projects(self, obj):
         projects = Projects.objects.filter(participants=obj)
         return ProjectsSerializer(projects, many=True).data
+
+    def get_students(self, obj):
+        if obj.is_supervisor == 1:
+            students = Profile.objects.filter(supervisor=obj.user)
+            return ProfileSerializer(students, many=True).data
+        return False
 
 
 class ProfilePageSerializer(serializers.ModelSerializer):
