@@ -269,7 +269,7 @@ class DashboardSerializer(serializers.ModelSerializer):
         if obj.is_supervisor == 1:
             students = Profile.objects.filter(supervisor=obj.user)
             return ProfileSerializer(students, many=True).data
-        return []
+        return False
 
 
 class ProfilePageSerializer(serializers.ModelSerializer):
@@ -307,6 +307,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
 
 
 class AnalyticsSerializer(serializers.ModelSerializer):
+    project = serializers.CharField(source="title")
     participants = serializers.SerializerMethodField()
     assigned_tasks = serializers.SerializerMethodField()
     tasks_count_by_days = serializers.SerializerMethodField()
@@ -321,12 +322,15 @@ class AnalyticsSerializer(serializers.ModelSerializer):
 
     def get_assigned_tasks(self, obj):
         return Tasks.objects.filter(
-            assigned_to=self.context["request"].user.profile
+            assigned_to=self.context["request"].user.profile,
+            project=obj,
         ).count()
 
     def get_completed_tasks(self, obj):
         return Tasks.objects.filter(
-            assigned_to=self.context["request"].user.profile, status=3
+            assigned_to=self.context["request"].user.profile, 
+            status=3,
+            project=obj,
         ).count()
 
     def get_tasks_count_by_days(self, obj):  # TODO check if correct
@@ -345,6 +349,7 @@ class AnalyticsSerializer(serializers.ModelSerializer):
 
 
 class AnalyticsExtendedSerializer(serializers.ModelSerializer):
+    project = serializers.CharField(source="title")
     assigned_tasks = serializers.SerializerMethodField()
     tasks_count_by_days = serializers.SerializerMethodField()
     completed_tasks = serializers.SerializerMethodField()
@@ -371,12 +376,15 @@ class AnalyticsExtendedSerializer(serializers.ModelSerializer):
 
     def get_assigned_tasks(self, obj):
         return Tasks.objects.filter(
-            assigned_to=self.context["request"].user.profile
+            assigned_to=self.context["request"].user.profile,
+            project=obj,
         ).count()
 
     def get_completed_tasks(self, obj):
         return Tasks.objects.filter(
-            assigned_to=self.context["request"].user.profile, status=3
+            assigned_to=self.context["request"].user.profile,
+            status=3,
+            project=obj,
         ).count()
 
     def get_tasks_count_by_days(self, obj):  # TODO check if correct
@@ -412,6 +420,7 @@ class AnalyticsExtendedSerializer(serializers.ModelSerializer):
         return Tasks.objects.filter(
             assigned_to=self.context["request"].user.profile,
             created_at__month=today.month,
+            project=obj,
         ).count()
 
     def get_tasks_this_month(self, obj):
@@ -443,6 +452,7 @@ class AnalyticsExtendedSerializer(serializers.ModelSerializer):
             assigned_to=self.context["request"].user.profile,
             status=3,
             completed_at__year=today.year,
+            project=obj,
         ).count()
 
     def completed_this_week(self, obj):
@@ -451,6 +461,7 @@ class AnalyticsExtendedSerializer(serializers.ModelSerializer):
             assigned_to=self.context["request"].user.profile,
             status=3,
             completed_at__week=today.weekday,
+            project=obj,
         ).count()
 
     def get_completed_today(self, obj):
@@ -459,4 +470,5 @@ class AnalyticsExtendedSerializer(serializers.ModelSerializer):
             assigned_to=self.context["request"].user.profile,
             status=3,
             completed_at=today,
+            project=obj,
         ).count()
