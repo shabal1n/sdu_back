@@ -38,10 +38,20 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class ProjectsSerializer(serializers.ModelSerializer):
     participants = ProfileSerializer(many=True, read_only=True)
+    complete_tasks = serializers.SerializerMethodField()
+    total_tasks = serializers.SerializerMethodField()
 
     class Meta:
         model = Projects
-        fields = ["title", "priority", "deadline", "course", "participants"]
+        fields = [
+            "title",
+            "priority",
+            "deadline",
+            "course",
+            "participants",
+            "complete_tasks",
+            "total_tasks",
+        ]
         extra_kwargs = {
             "title": {"required": True},
             "priority": {"required": True},
@@ -62,6 +72,12 @@ class ProjectsSerializer(serializers.ModelSerializer):
         project.participants.add(self.context["request"].user.profile)
         project.save()
         return project
+
+    def get_complete_tasks(self, obj):
+        return Tasks.objects.filter(project=obj, status=3).count()
+
+    def get_total_tasks(self, obj):
+        return Tasks.objects.filter(project=obj).count()
 
 
 class TasksSerializer(serializers.ModelSerializer):
@@ -437,21 +453,3 @@ class AnalyticsExtendedSerializer(serializers.ModelSerializer):
             status=3,
             completed_at=today,
         ).count()
-
-class FriendRequestsSerializer(serializers.ModelSerializer):
-    # from_user = serializers.RelatedField(read_only=True).to_representation()
-    from_user = serializers.SerializerMethodField()
-    class Meta:
-        model = FriendRequest
-        fields = ['from_user', 'is_active', 'timestamp']
-
-    def get_from_user(self, obj):
-        return obj.from_user.username
-
-
-class FriendsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FriendsList
-        fields = "__all__"
-
-    
