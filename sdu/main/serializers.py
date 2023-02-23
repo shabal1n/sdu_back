@@ -363,6 +363,7 @@ class AnalyticsExtendedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Projects
         fields = [
+            "project",
             "assigned_tasks",
             "tasks_count_by_days",
             "completed_tasks",
