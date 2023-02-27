@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.core import validators
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -19,7 +20,14 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
-    email = serializers.CharField(source="user.email", read_only=True)
+    email = serializers.EmailField(
+        source="user.email",
+        read_only=True,
+        validators=[
+            UniqueValidator(queryset=Profile.objects.all()),
+            validators.EmailValidator(message="Invalid Email"),
+        ],
+    )
     status = serializers.CharField(source="status.title")
 
     class Meta:
@@ -63,7 +71,7 @@ class ProjectsSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs["deadline"] < date.today():
             raise serializers.ValidationError("Deadline cannot be in the past")
-        elif self.context["request"].user.profile.is_supervisor == 0:
+        elif self.context["request"].user.profile.is_supervisor == 1:
             raise serializers.ValidationError("Only students can create projects")
         return attrs
 
@@ -183,7 +191,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
-        required=True, validators=[UniqueValidator(queryset=User.objects.all())]
+        required=True,
+        validators=[
+            UniqueValidator(queryset=Profile.objects.all()),
+            validators.EmailValidator(message="Invalid Email"),
+        ],
     )
 
     password = serializers.CharField(
@@ -328,7 +340,7 @@ class AnalyticsSerializer(serializers.ModelSerializer):
 
     def get_completed_tasks(self, obj):
         return Tasks.objects.filter(
-            assigned_to=self.context["request"].user.profile, 
+            assigned_to=self.context["request"].user.profile,
             status=3,
             project=obj,
         ).count()
