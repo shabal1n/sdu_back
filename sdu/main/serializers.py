@@ -78,8 +78,8 @@ class ProjectsSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         project = Projects.objects.create(**validated_data)
         project.participants.add(self.context["request"].user.profile)
-        for user in validated_data["participants"]:
-            project.participants.add(User.objects.get(id=user).profile)
+        for user in self.context["request"].data["participants"]:
+            project.participants.add(Profile.objects.get(id=user))
         project.save()
         return project
 
