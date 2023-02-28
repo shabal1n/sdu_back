@@ -243,6 +243,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class DashboardSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
+    email = serializers.SerializerMethodField()
     is_advisor = serializers.SerializerMethodField()
     complete_tasks = serializers.SerializerMethodField()
     total_tasks = serializers.SerializerMethodField()
@@ -257,6 +258,9 @@ class DashboardSerializer(serializers.ModelSerializer):
 
     def get_username(self, obj):
         return self.context["request"].user.username
+    
+    def get_email(self, obj):
+        return self.context["request"].user.email
 
     def get_is_advisor(self, obj):
         if obj.is_supervisor == 1:
