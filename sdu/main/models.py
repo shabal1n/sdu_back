@@ -3,13 +3,6 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class Courses(models.Model):
-    title = models.CharField(max_length=25, blank=False)
-
-    def __str__(self):
-        return self.title
-
-
 class Roles(models.Model):
     title = models.CharField(max_length=25, blank=False)
 
@@ -64,6 +57,14 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+class Courses(models.Model):
+    course_supervisor = models.ForeignKey(
+        Profile, related_name="course_supervisor", on_delete=models.CASCADE, null=True, blank=True
+    )
+    title = models.CharField(max_length=25, blank=False)
+
+    def __str__(self):
+        return self.title
 
 class FriendsList(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

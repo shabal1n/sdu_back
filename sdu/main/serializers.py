@@ -17,6 +17,16 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ["url", "username", "email", "groups", "password"]
 
+class CoursesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Courses
+        fields = [
+            "id",
+            "course_name",
+            "course_supervisor"
+        ]
+        
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)

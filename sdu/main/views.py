@@ -8,8 +8,7 @@ from rest_framework import (
     viewsets,
     filters,
     generics,
-    authentication,
-    permissions,
+    generics,
     viewsets,
 )
 from django_filters.rest_framework import DjangoFilterBackend
@@ -41,6 +40,13 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user.id)
+    
+    @action(detail=False, methods=["GET"], name="Get Supervisor Courses")
+    def courses(self, request):
+        profile = Profile.objects.get(user=self.request.user.id)
+        courses = Courses.objects.filter(course_supervisor=profile.id)
+        serializer = CoursesSerializer(courses, many=True)
+        return Response(serializer.data)
 
 
 class ProjectsViewSet(viewsets.ModelViewSet):
