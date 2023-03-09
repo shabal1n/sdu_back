@@ -41,12 +41,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user.id)
     
-    @action(detail=False, methods=["GET"], name="Get Supervisor Courses")
-    def courses(self, request):
-        profile = Profile.objects.get(user=self.request.user.id)
-        courses = Courses.objects.filter(course_supervisor=profile.id)
-        serializer = CoursesSerializer(courses, many=True)
-        return Response(serializer.data)
 
 
 class ProjectsViewSet(viewsets.ModelViewSet):
@@ -164,4 +158,15 @@ class AnalyticsPageViewSet(viewsets.ModelViewSet):
         serializer = AnalyticsExtendedSerializer(
             projects, context={"request": request}, many=True
         )
+        return Response(serializer.data)
+    
+class CoursesViewSet(viewsets.ModelViewSet):
+    queryset = Courses.objects.all()
+    serializer_class = CoursesSerializer
+
+    def get(self, request):
+        profile = Profile.objects.get(user=self.request.user.id)
+        if profile.is_supervisor:
+            courses = Courses.objects.filter(course_supervisor=profile.id)
+        serializer = CoursesSerializer(courses, many=True)
         return Response(serializer.data)
