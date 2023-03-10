@@ -116,6 +116,7 @@ class TasksSerializer(serializers.ModelSerializer):
             "project",
             "status",
             "subtasks_quantity",
+            "subtasks",
             "completed_subtasks_quantity",
         ]
         extra_kwargs = {
