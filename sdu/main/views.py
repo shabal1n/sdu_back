@@ -167,6 +167,6 @@ class CoursesViewSet(viewsets.ModelViewSet):
     def get(self, request):
         profile = Profile.objects.get(user=self.request.user.id)
         if profile.is_supervisor:
-            courses = Courses.objects.filter(course_supervisor=profile)
+            courses = Courses.objects.filter(course_supervisor=profile.id)
         serializer = CoursesSerializer(courses, many=True)
         return Response(serializer.data)
