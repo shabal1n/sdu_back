@@ -103,6 +103,7 @@ class ProjectsSerializer(serializers.ModelSerializer):
 class TasksSerializer(serializers.ModelSerializer):
     subtasks_quantity = serializers.SerializerMethodField()
     completed_subtasks_quantity = serializers.SerializerMethodField()
+    subtasks = serializers.SerializerMethodField()
 
     class Meta:
         model = Tasks
@@ -131,6 +132,9 @@ class TasksSerializer(serializers.ModelSerializer):
         if self.context["request"].user.profile.is_supervisor == 0:
             raise serializers.ValidationError("Only supervisors can create tasks")
         return attrs
+    
+    def get_subtasks(self, obj):
+        return SubtasksSerializer(obj.subtasks_set.all(), many=True).data
 
     def get_subtasks_quantity(self, obj):
         return Subtasks.objects.filter(task=obj).count()
