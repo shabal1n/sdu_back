@@ -22,10 +22,10 @@ class CoursesSerializer(serializers.ModelSerializer):
         model = Courses
         fields = [
             "id",
-            "course_name",
+            "title",
             "course_supervisor"
         ]
-        
+
 
 
 class ProfileSerializer(serializers.ModelSerializer):
