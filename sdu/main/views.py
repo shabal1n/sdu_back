@@ -164,9 +164,10 @@ class CoursesViewSet(viewsets.ModelViewSet):
     queryset = Courses.objects.all()
     serializer_class = CoursesSerializer
 
-    def get(self, request):
+    def get_queryset(self):
         profile = Profile.objects.get(user=self.request.user.id)
+        print(profile.is_supervisor, profile.user.first_name)
         if profile.is_supervisor:
             courses = Courses.objects.filter(course_supervisor=profile.id)
-        serializer = CoursesSerializer(courses, many=True)
-        return Response(serializer.data)
+            return courses
+        return Courses.objects.none()

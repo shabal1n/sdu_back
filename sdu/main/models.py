@@ -59,7 +59,7 @@ class Profile(models.Model):
 
 class Courses(models.Model):
     course_supervisor = models.ForeignKey(
-        Profile, related_name="course_supervisor", on_delete=models.CASCADE, null=True, blank=True
+        Profile, on_delete=models.CASCADE, null=True, blank=True
     )
     title = models.CharField(max_length=25, blank=False)
 
