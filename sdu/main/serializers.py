@@ -214,6 +214,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, required=True, validators=[validate_password]
     )
+    username = serializers.CharField(write_only=True, required=True, validators=None)
     password2 = serializers.CharField(write_only=True, required=True)
     profile = ProfilePatchSerializer()
 
@@ -236,7 +237,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create(
-            username=validated_data["username"], email=validated_data["email"]
+            username=validated_data.pop("username"), email=validated_data["email"]
         )
         user.set_password(validated_data["password"])
         user.save()
