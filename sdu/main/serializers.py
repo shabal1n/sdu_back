@@ -83,9 +83,9 @@ class ProjectsSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs["deadline"] < date.today():
-            raise serializers.ValidationError("Deadline cannot be in the past")
+            raise exceptions.ValidationError("Deadline cannot be in the past")
         elif self.context["request"].user.profile.is_supervisor == 1:
-            raise serializers.ValidationError("Only students can create projects")
+            raise exceptions.ValidationError("Only students can create projects")
         return attrs
 
     def create(self, validated_data):
@@ -134,7 +134,7 @@ class TasksSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if self.context["request"].user.profile.is_supervisor == 0:
-            raise serializers.ValidationError("Only supervisors can create tasks")
+            raise exceptions.ValidationError("Only supervisors can create tasks")
         return attrs
     
     def get_subtasks(self, obj):
@@ -235,9 +235,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         min_length = 6
         password = attrs["password"]
         if password != attrs["password2"]:
-            return JsonResponse(status=400, data={'status': 'false', "message":"Passwords must match."})
+            raise exceptions.ValidationError({"password": "Passwords must match."})
         if len(password) < min_length:
-            return JsonResponse(status=400, data={'status': 'false', "message":"Passwords length must be more than 6."})
+            raise exceptions.ValidationError({"password": "Passwords length must be more than 6."})
         return attrs
     
     def create(self, validated_data):
