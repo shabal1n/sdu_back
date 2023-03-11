@@ -139,6 +139,13 @@ class ProfilePageView(viewsets.ModelViewSet):
         profile.save()
         serializer = ProfileSerializer(profile)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=["POST"], name="Edit User Password")
+    def change_password(self, request):
+        user = User.objects.get(id=self.request.user.id)
+        user.set_password(self.request.data["password"])
+        user.save()
+        return Response("Password changed")
 
 
 class AnalyticsPageViewSet(viewsets.ModelViewSet):
