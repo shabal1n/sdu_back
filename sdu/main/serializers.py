@@ -1,9 +1,11 @@
 import datetime
 import calendar
+from django.core import exceptions
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, date
 from django.contrib.auth.models import User
 from django.forms import ValidationError
+from django.http import HttpResponseBadRequest, JsonResponse
 from sdu.main.models import *
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -233,13 +235,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         min_length = 6
         password = attrs["password"]
         if password != attrs["password2"]:
-            raise ValidationError(
-                {"error": [{"password": "Passwords must match."}]}
-            )
+            raise exceptions.ValidationError({"password": "Passwords must match."})
         if len(password) < min_length:
-            raise ValidationError(
-                {"error": [{"password": "Password must be at least 6 characters."}]}
-            )
+            raise exceptions.ValidationError({"password": "Passwords length must be more than 6."})
         return attrs
     
     def create(self, validated_data):
