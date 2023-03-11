@@ -235,9 +235,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         min_length = 6
         password = attrs["password"]
         if password != attrs["password2"]:
-            raise serializers.ValidationError({"password":"Passwords must match."})
+            return JsonResponse(status=400, data={'status': 'false', "message":"Passwords must match."})
         if len(password) < min_length:
-            raise serializers.ValidationError({"password":"Passwords length must be more than 6."})
+            return JsonResponse(status=400, data={'status': 'false', "message":"Passwords length must be more than 6."})
         return attrs
     
     def create(self, validated_data):
