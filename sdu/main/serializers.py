@@ -207,12 +207,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        required=True,
-        validators=[
-            UniqueValidator(queryset=Profile.objects.all()),
-            validators.EmailValidator(message="Invalid Email"),
-        ],
+    email = serializers.CharField(
+        write_only=True, required=True
     )
 
     password = serializers.CharField(
