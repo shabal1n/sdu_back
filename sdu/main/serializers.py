@@ -3,13 +3,14 @@ import calendar
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, date
 from django.contrib.auth.models import User
+from django.forms import ValidationError
 from sdu.main.models import *
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.core import validators
+from django.core.validators import MaxValueValidator, MinLengthValidator, EmailValidator
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -35,7 +36,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only=True,
         validators=[
             UniqueValidator(queryset=Profile.objects.all()),
-            validators.EmailValidator(message="Invalid Email"),
+            EmailValidator(message="Invalid Email"),
         ],
     )
     status = serializers.CharField(source="status.title")
@@ -207,15 +208,15 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(
+    email = serializers.EmailField(
         write_only=True, required=True
     )
 
     password = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password]
+        write_only=True, required=True, validators=[MinLengthValidator(6)]
     )
-    username = serializers.CharField(write_only=True, required=True, validators=None)
-    password2 = serializers.CharField(write_only=True, required=True)
+    username = serializers.CharField(write_only=True, required=True, validators=[UniqueValidator(queryset=User.objects.all())])
+    password2 = serializers.CharField(write_only=True, required=True, validators=[MinLengthValidator(6)])
     profile = ProfilePatchSerializer()
 
     class Meta:
@@ -229,19 +230,25 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        if attrs["password"] != attrs["password2"]:
-            raise serializers.ValidationError(
-                {"password": "Password fields didn't match."}
+        min_length = 6
+        password = attrs["password"]
+        if password != attrs["password2"]:
+            raise ValidationError(
+                {"error": [{"password": "Passwords must match."}]}
+            )
+        if len(password) < min_length:
+            raise ValidationError(
+                {"error": [{"password": "Password must be at least 6 characters."}]}
             )
         return attrs
-
+    
     def create(self, validated_data):
         user = User.objects.create(
             username=validated_data.pop("username"), email=validated_data["email"]
         )
-        user.set_password(validated_data["password"])
+        user.set_password(validated_data.pop("password"))
         user.save()
-        profile_data = validated_data.pop("profile")
+        profile_data = validated_data["profile"]
         profile = Profile.objects.create(
             user=user,
             birth_date=profile_data["birth_date"],
