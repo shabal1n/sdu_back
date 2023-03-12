@@ -13,6 +13,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.core.validators import MinLengthValidator, EmailValidator
 from rest_framework import status
 
+class APIException200(exceptions.APIException):
+    status_code = 200
+
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
@@ -207,6 +210,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
+
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         write_only=True, required=True
@@ -233,9 +237,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         min_length = 6
         password = attrs["password"]
         if password != attrs["password2"]:
-            raise exceptions.APIException(detail={"status":"error", "error": "Passwords must match!!"}, status=status.HTTP_200_OK)
+            raise APIException200(detail={"status":"error", "error": "Passwords must match!!"})
         if len(password) < min_length:
-            raise exceptions.APIException(detail={"status":"error", "error": "Passwords length must be more than 6."}, status=status.HTTP_200_OK)
+            raise APIException200(detail={"status":"error", "error": "Passwords length must be more than 6."})
         return attrs
     
     def create(self, validated_data):
