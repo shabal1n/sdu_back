@@ -144,10 +144,10 @@ class ProfilePageView(viewsets.ModelViewSet):
     def change_password(self, request):
         user = User.objects.get(id=self.request.user.id)
         if not user.check_password(self.request.data["old_password"]):
-            return Response("Wrong password")
+            return exceptions.ValidationError("Wrong password")
         else:
             if self.request.data["new_password1"] != self.request.data["new_password2"]:
-                return Response("Passwords don't match")
+                return exceptions.ValidationError("Passwords don't match")
             else:
                 user.set_password(self.request.data["new_password1"])
                 user.save()
