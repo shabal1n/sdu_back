@@ -6,15 +6,67 @@ from datetime import datetime, date
 from django.contrib.auth.models import User
 from requests import Response
 from sdu.main.models import *
+from django.utils.encoding import force_text
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.core.validators import MinLengthValidator, EmailValidator
 from rest_framework import status
+from django.db import DataError
+from django.utils.translation import gettext_lazy as _
+
+from rest_framework.exceptions import ValidationError
+from rest_framework.utils.representation import smart_repr
 
 class APIException200(exceptions.APIException):
     status_code = 200
+
+def qs_exists(queryset):
+    try:
+        return queryset.exists()
+    except (TypeError, ValueError, DataError):
+        return False
+
+
+def qs_filter(queryset, **kwargs):
+    try:
+        return queryset.filter(**kwargs)
+    except (TypeError, ValueError, DataError):
+        return queryset.none()
+    
+class UniqueValidator:
+    message = _('This field must be unique.')
+    requires_context = True
+
+    def __init__(self, queryset, message=None, lookup='exact'):
+        self.queryset = queryset
+        self.message = message or self.message
+        self.lookup = lookup
+
+    def filter_queryset(self, value, queryset, field_name):
+        filter_kwargs = {'%s__%s' % (field_name, self.lookup): value}
+        return qs_filter(queryset, **filter_kwargs)
+
+    def exclude_current_instance(self, queryset, instance):
+        if instance is not None:
+            return queryset.exclude(pk=instance.pk)
+        return queryset
+
+    def __call__(self, value, serializer_field):
+        field_name = serializer_field.source_attrs[-1]
+        instance = getattr(serializer_field.parent, 'instance', None)
+
+        queryset = self.queryset
+        queryset = self.filter_queryset(value, queryset, field_name)
+        queryset = self.exclude_current_instance(queryset, instance)
+        if qs_exists(queryset):
+            raise APIException200(detail={"status": "error", "error": self.message})
+
+    def __repr__(self):
+        return '<%s(queryset=%s)>' % (
+            self.__class__.__name__,
+            smart_repr(self.queryset)
+        )
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -212,14 +264,14 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        write_only=True, required=True
+    email = serializers.CharField(
+        write_only=True, required=True, validators=[UniqueValidator(queryset=User.objects.all())]
     )
 
     password = serializers.CharField(
         write_only=True, required=True, validators=None
     )
-    username = serializers.CharField(write_only=True, required=True, validators=None)
+    username = serializers.CharField(write_only=True, required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     password2 = serializers.CharField(write_only=True, required=True, validators=None)
     profile = ProfilePatchSerializer()
 
@@ -240,6 +292,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise APIException200(detail={"status":"error", "error": "Passwords must match!!"})
         if len(password) < min_length:
             raise APIException200(detail={"status":"error", "error": "Passwords length must be more than 6."})
+        if User.objects.filter(username=attrs["username"]).exists():
+            raise APIException200(detail={"status":"error", "error": "Username already exists."})
+        if User.objects.filter(email=attrs["email"]).exists():
+            raise APIException200(detail={"status":"error", "error": "Email already exists."})
         return attrs
     
     def create(self, validated_data):
