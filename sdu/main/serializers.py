@@ -285,13 +285,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         min_length = 6
         password = attrs["password"]
         if password != attrs["password2"]:
-            raise APIException200(detail={"status":"error", "error": "Passwords must match!!"})
+            raise APIException200(detail={"status":"error", "error": {"password": "Passwords must match!!"}})
         if len(password) < min_length:
-            raise APIException200(detail={"status":"error", "error": "Passwords length must be more than 6."})
-        if User.objects.filter(username=attrs["username"]).exists():
-            raise APIException200(detail={"status":"error", "error": "Username already exists."})
-        if User.objects.filter(email=attrs["email"]).exists():
-            raise APIException200(detail={"status":"error", "error": "Email already exists."})
+            raise APIException200(detail={"status":"error", "error": {"password": "Passwords length must be more than 6."}})
         return attrs
     
     def create(self, validated_data):
