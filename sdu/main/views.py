@@ -14,7 +14,8 @@ from rest_framework import (
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from sdu.main.serializers import *
-from rest_framework.response import Response, HttpResponse
+from rest_framework.response import Response
+from django.http import HttpResponse
 from rest_framework import generics
 
 
