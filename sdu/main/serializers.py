@@ -213,10 +213,10 @@ class RegisterSerializer(serializers.ModelSerializer):
     )
 
     password = serializers.CharField(
-        write_only=True, required=True, validators=[MinLengthValidator(6)]
+        write_only=True, required=True, validators=None
     )
-    username = serializers.CharField(write_only=True, required=True, validators=[UniqueValidator(queryset=User.objects.all())])
-    password2 = serializers.CharField(write_only=True, required=True, validators=[MinLengthValidator(6)])
+    username = serializers.CharField(write_only=True, required=True, validators=None)
+    password2 = serializers.CharField(write_only=True, required=True, validators=None)
     profile = ProfilePatchSerializer()
 
     class Meta:
