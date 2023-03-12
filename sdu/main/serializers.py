@@ -6,7 +6,6 @@ from datetime import datetime, date
 from django.contrib.auth.models import User
 from requests import Response
 from sdu.main.models import *
-from django.utils.encoding import force_text
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
