@@ -143,9 +143,15 @@ class ProfilePageView(viewsets.ModelViewSet):
     @action(detail=False, methods=["POST"], name="Edit User Password")
     def change_password(self, request):
         user = User.objects.get(id=self.request.user.id)
-        user.set_password(self.request.data["password"])
-        user.save()
-        return Response("Password changed")
+        if not user.check_password(self.request.data["old_password"]):
+            return Response("Wrong password")
+        else:
+            if self.request.data["new_password1"] != self.request.data["new_password2"]:
+                return Response("Passwords don't match")
+            else:
+                user.set_password(self.request.data["new_password1"])
+                user.save()
+                return Response("Password changed")
 
 
 class AnalyticsPageViewSet(viewsets.ModelViewSet):
