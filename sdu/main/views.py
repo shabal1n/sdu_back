@@ -14,7 +14,7 @@ from rest_framework import (
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from sdu.main.serializers import *
-from rest_framework.response import Response
+from rest_framework.response import Response, HttpResponse
 from rest_framework import generics
 
 
@@ -144,10 +144,10 @@ class ProfilePageView(viewsets.ModelViewSet):
     def change_password(self, request):
         user = User.objects.get(id=self.request.user.id)
         if not user.check_password(self.request.data["old_password"]):
-            return exceptions.ValidationError("Wrong password")
+            return HttpResponse({"error":"Wrong password"}, status=400)
         else:
             if self.request.data["new_password1"] != self.request.data["new_password2"]:
-                return exceptions.ValidationError("Passwords don't match")
+                return HttpResponse({"error":"Password do not match"}, status=400)
             else:
                 user.set_password(self.request.data["new_password1"])
                 user.save()
