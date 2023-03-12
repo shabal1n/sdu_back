@@ -4,17 +4,14 @@ from rest_framework import exceptions
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, date
 from django.contrib.auth.models import User
-from requests import Response
 from sdu.main.models import *
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.core.validators import MinLengthValidator, EmailValidator
-from rest_framework import status
+from django.core.validators import EmailValidator
 from django.db import DataError
 from django.utils.translation import gettext_lazy as _
 
-from rest_framework.exceptions import ValidationError
 from rest_framework.utils.representation import smart_repr
 
 class APIException200(exceptions.APIException):
@@ -59,7 +56,7 @@ class UniqueValidator:
         queryset = self.filter_queryset(value, queryset, field_name)
         queryset = self.exclude_current_instance(queryset, instance)
         if qs_exists(queryset):
-            raise APIException200(detail={"status": "error", "error": self.message})
+            raise APIException200(detail={"status": "error", "error": {field_name: self.message}})
 
     def __repr__(self):
         return '<%s(queryset=%s)>' % (
