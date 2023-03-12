@@ -1,6 +1,6 @@
 import datetime
 import calendar
-from django.core import exceptions
+from rest_framework import exceptions
 from dateutil.relativedelta import relativedelta
 from datetime import datetime, date
 from django.contrib.auth.models import User
@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.core.validators import MinLengthValidator, EmailValidator
-
+from rest_framework import status
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -233,9 +233,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         min_length = 6
         password = attrs["password"]
         if password != attrs["password2"]:
-            raise exceptions.ValidationError({"password": "Passwords must match!!"})
+            raise exceptions.APIException(detail={"status":"error", "error": "Passwords must match!!"}, status=status.HTTP_200_OK)
         if len(password) < min_length:
-            raise exceptions.ValidationError({"password": "Passwords length must be more than 6."})
+            raise exceptions.APIException(detail={"status":"error", "error": "Passwords length must be more than 6."}, status=status.HTTP_200_OK)
         return attrs
     
     def create(self, validated_data):
