@@ -64,11 +64,11 @@ class ProjectsViewSet(viewsets.ModelViewSet):
         result_dict = {}
         for i in serializer.data:
             if i["status"] == 1:
-                result_dict['To-Do'] = i
+                result_dict['to_do'] = i
             elif i["status"] == 2:
-                result_dict['In Progress'] = i
+                result_dict['in_progress'] = i
             elif i["status"] == 3:
-                result_dict['Done'] = i
+                result_dict['done'] = i
         return Response(result_dict)
 
 
