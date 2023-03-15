@@ -167,7 +167,7 @@ class TasksSerializer(serializers.ModelSerializer):
             "created_at",
             "description",
             "project",
-            "status.title",
+            "status",
             "subtasks_quantity",
             "subtasks",
             "completed_subtasks_quantity",
