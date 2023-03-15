@@ -62,6 +62,7 @@ class ProjectsViewSet(viewsets.ModelViewSet):
         tasks = Tasks.objects.filter(project=project.id)
         serializer = TasksDetailSerializer(tasks, many=True)
         result_dict = {}
+        result_dict['project'] = project.title
         result_dict['to_do'] = list()
         result_dict['in_progress'] = list()
         result_dict['done'] = list()
