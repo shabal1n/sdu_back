@@ -132,6 +132,16 @@ class DashboardView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user.id)
+    
+    @action(detail=False, methods=["POST"], name="Add student to supervisor")
+    def add_student(self, request):
+        profile = Profile.objects.get(user=self.request.user.id)
+        if profile.is_supervisor:
+            profile_student = Profile.objects.get(id=self.request.data["student_id"])
+            profile_student.supervisor = profile.user
+            profile_student.save()
+            return Response("Student added")
+        return Response("You are not a supervisor")
 
 
 class ProfilePageView(viewsets.ModelViewSet):
