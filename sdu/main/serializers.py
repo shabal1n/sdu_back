@@ -114,6 +114,7 @@ class ProjectsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Projects
         fields = [
+            "id",
             "title",
             "priority",
             "deadline",
@@ -239,14 +240,14 @@ class TasksDetailSerializer(serializers.ModelSerializer):
 
 
 class ProfilePatchSerializer(serializers.ModelSerializer):
+    birth_date = serializers.CharField()
+    course_of_study = serializers.CharField()
+    year_of_study = serializers.CharField()
+
     class Meta:
         model = Profile
         fields = ["birth_date", "course_of_study", "year_of_study"]
-        extra_kwargs = {
-            "birth_date": {"required": True},
-            "course_of_study": {"required": True},
-            "year_of_study": {"required": True},
-        }
+        
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

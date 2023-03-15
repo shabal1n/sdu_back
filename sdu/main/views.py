@@ -55,6 +55,12 @@ class ProjectsViewSet(viewsets.ModelViewSet):
         projects = Projects.objects.filter(participants=profile.id)
         serializer = self.get_serializer(projects, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=["GET"], name="Get Project Details")
+    def details(self, request):
+        project = Projects.objects.get(id=self.request.data["project_id"])
+        serializer = TasksDetailSerializer(project)
+        return Response(serializer.data)
 
 
 class TasksViewSet(viewsets.ModelViewSet):
