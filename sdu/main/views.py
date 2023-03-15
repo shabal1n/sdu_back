@@ -58,7 +58,7 @@ class ProjectsViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=["GET"], name="Get Project Details")
     def details(self, request):
-        project = Projects.objects.get(id=self.request.data["project_id"])
+        project = Projects.objects.get(id=request.GET["project_id"])
         serializer = TasksDetailSerializer(project)
         return Response(serializer.data)
 
