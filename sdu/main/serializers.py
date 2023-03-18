@@ -14,6 +14,8 @@ from django.utils.translation import gettext_lazy as _
 
 from rest_framework.utils.representation import smart_repr
 
+from sdu.main.validation import validateEmail
+
 class APIException200(exceptions.APIException):
     status_code = 200
 
@@ -254,9 +256,27 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
-
         token["username"] = user.username
+        token['email'] = user.email
         return token
+    
+    def validate(self, attrs):
+        userName = attrs.get("username")
+        password = attrs.get("password")
+
+
+        if validateEmail(userName) is True:
+            try:
+                user = User.objects.get(email=userName)
+                if user.check_password(password):
+                    attrs['username'] = user.username
+
+            except User.DoesNotExist:
+                raise exceptions.AuthenticationFailed(
+                    'No such user with provided credentials'.title()) 
+        
+        data = super().validate(attrs)
+        return data
 
 
 

@@ -68,6 +68,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "sdu.urls"
 
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
