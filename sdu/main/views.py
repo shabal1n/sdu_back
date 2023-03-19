@@ -42,7 +42,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user.id)
-    
 
 
 class ProjectsViewSet(viewsets.ModelViewSet):
@@ -55,24 +54,24 @@ class ProjectsViewSet(viewsets.ModelViewSet):
         projects = Projects.objects.filter(participants=profile.id)
         serializer = self.get_serializer(projects, many=True)
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=["GET"], name="Get Project Details")
     def details(self, request):
         project = Projects.objects.get(id=request.GET["project_id"])
         tasks = Tasks.objects.filter(project=project.id)
         serializer = TasksDetailSerializer(tasks, many=True)
         result_dict = {}
-        result_dict['project'] = project.title
-        result_dict['to_do'] = list()
-        result_dict['in_progress'] = list()
-        result_dict['done'] = list()
+        result_dict["project"] = project.title
+        result_dict["to_do"] = list()
+        result_dict["in_progress"] = list()
+        result_dict["done"] = list()
         for i in serializer.data:
             if i["status"] == 1:
-                result_dict['to_do'].append(i)
+                result_dict["to_do"].append(i)
             elif i["status"] == 2:
-                result_dict['in_progress'].append(i)
+                result_dict["in_progress"].append(i)
             elif i["status"] == 3:
-                result_dict['done'].append(i)
+                result_dict["done"].append(i)
         return Response(result_dict)
 
 
@@ -142,7 +141,7 @@ class DashboardView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user.id)
-    
+
     @action(detail=False, methods=["POST"], name="Add student to supervisor")
     def add_student(self, request):
         profile = Profile.objects.get(user=self.request.user.id)
@@ -180,19 +179,25 @@ class ProfilePageView(viewsets.ModelViewSet):
         profile.save()
         serializer = ProfileSerializer(profile)
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=["POST"], name="Edit User Password")
     def change_password(self, request):
         user = User.objects.get(id=self.request.user.id)
         if not user.check_password(self.request.data["old_password"]):
-            return HttpResponse(json.dumps({"status": "error", "error":"Wrong password"}))
+            return HttpResponse(
+                json.dumps({"status": "error", "error": "Wrong password"})
+            )
         else:
             if self.request.data["new_password1"] != self.request.data["new_password2"]:
-                return HttpResponse(json.dumps({"status": "error", "error":"Password do not match"}))
+                return HttpResponse(
+                    json.dumps({"status": "error", "error": "Password do not match"})
+                )
             else:
                 user.set_password(self.request.data["new_password1"])
                 user.save()
-                return HttpResponse(json.dumps({"status": "OK", "message":"Password changed"}))
+                return HttpResponse(
+                    json.dumps({"status": "OK", "message": "Password changed"})
+                )
 
 
 class AnalyticsPageViewSet(viewsets.ModelViewSet):
@@ -212,15 +217,25 @@ class AnalyticsPageViewSet(viewsets.ModelViewSet):
             projects, context={"request": request}, many=True
         )
         return Response(serializer.data)
-    
+
+
 class CoursesViewSet(viewsets.ModelViewSet):
     queryset = Courses.objects.all()
     serializer_class = CoursesSerializer
 
     def get_queryset(self):
         profile = Profile.objects.get(user=self.request.user.id)
-        print(profile.is_supervisor, profile.user.first_name)
         if profile.is_supervisor:
             courses = Courses.objects.filter(course_supervisor=profile.id)
             return courses
         return Courses.objects.none()
+
+    def create(self, request, *args, **kwargs):
+        profile = Profile.objects.get(user=self.request.user.id)
+        if profile.is_supervisor:
+            new_course = Courses.objects.create(
+                course_supervisor=profile, title=request.data["title"]
+            )
+            new_course.save()
+            return Response("Course created")
+        return Response("You are not a supervisor")
