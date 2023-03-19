@@ -98,20 +98,30 @@ class TasksViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["POST"], name="Edit Task Data")
     def edit(self, request):
-        task = Tasks.objects.get(id=self.request.data["task_id"])
-        task.assigned_to.add(Profile.objects.get(id=self.request.data["assigned_to"]))
-        task.title = self.request.data["title"]
-        task.deadline = self.request.data["deadline"]
-        task.description = self.request.data["description"]
-        task.status = TaskStatuses.objects.get(id=self.request.data["status"])
-        task.save()
-        return Response("Task edited")
+        profile = Profile.objects.get(id=self.request.data["assigned_to"])
+        if profile.is_supervisor:
+            task = Tasks.objects.get(id=self.request.data["task_id"])
+            task.assigned_to.add(profile)
+            task.title = self.request.data["title"]
+            task.deadline = self.request.data["deadline"]
+            task.description = self.request.data["description"]
+            task.status = TaskStatuses.objects.get(id=self.request.data["status"])
+            task.save()
+            return Response("Task edited")
+        else:
+            return Response("You are not a supervisor")
 
     @action(detail=False, methods=["DELETE"], name="Delete Task")
     def delete(self, request):
-        task = Tasks.objects.get(id=self.request.data["task_id"])
-        task.delete()
-        return Response("Task deleted")
+        profile = Profile.objects.get(id=self.request.data["assigned_to"])
+        if profile:
+            if profile.is_supervisor:
+                task = Tasks.objects.get(id=self.request.data["task_id"])
+                task.delete()
+                return Response("Task deleted")
+            else:
+                return Response("You are not a supervisor")
+        return Response("You are not assigned to this task")
 
 
 class MyObtainTokenPairView(TokenObtainPairView):
@@ -189,11 +199,10 @@ class AnalyticsPageViewSet(viewsets.ModelViewSet):
     queryset = Projects.objects.all()
     serializer_class = AnalyticsSerializer
 
-    def get(self, request, format=None):
-        profile = Profile.objects.filter(user=self.request.user.id)
-        projects = Projects.objects.filter(participants=profile[0].id)
-        serializer = self.get_serializer(projects, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        profile = Profile.objects.filter(user=self.request.user)
+        projects = Projects.objects.filter(participants__id=profile[0].id)
+        return projects
 
     @action(detail=False, methods=["GET"], name="Get Analytics Data")
     def extended(self, request):
