@@ -228,7 +228,7 @@ class AnalyticsPageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         profile = Profile.objects.filter(user=self.request.user)
-        projects = Projects.objects.filter(participants__id=profile[0].id)
+        projects = Projects.objects.filter(id=self.request.data["project_id"])
         return projects
 
     @action(detail=False, methods=["GET"], name="Get Analytics Data")
