@@ -81,6 +81,24 @@ class TasksViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Tasks.objects.filter(project=self.request.data["project_id"])
+    
+    def create(self, request, *args, **kwargs):
+        profile = Profile.objects.get(user=self.request.user.id)
+        project = Projects.objects.get(id=self.request.data["project"])
+        if profile.is_supervisor and profile in project.participants.all():
+            new_task = Tasks.objects.create(
+                title=self.request.data["title"],
+                description=self.request.data["description"],
+                deadline=self.request.data["deadline"],
+                project=project,
+                status=TaskStatuses.objects.get(id=1),
+            )
+            profiles = Profile.objects.filter(id__in=self.request.data["assigned_to"])
+            for i in profiles:
+                new_task.assigned_to.add(i)
+            new_task.save()
+            return Response({"success": True})
+        return Response({"success": False})
 
     @action(detail=False, methods=["GET"], name="Get My Tasks")
     def my(self, request):
@@ -97,18 +115,22 @@ class TasksViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["POST"], name="Edit Task Data")
     def edit(self, request):
-        profile = Profile.objects.get(id=self.request.data["assigned_to"])
-        if profile.is_supervisor:
-            task = Tasks.objects.get(id=self.request.data["task_id"])
-            task.assigned_to.add(profile)
+        profile = Profile.objects.get(user=self.request.user.id)
+        task = Tasks.objects.get(id=self.request.data["task_id"])
+        project = Projects.objects.get(id=task.project.id)
+        if profile.is_supervisor and profile in project.participants.all():
+            profiles = Profile.objects.filter(id__in=self.request.data["assigned_to"])
+            for i in profiles:
+                task.assigned_to.add(i)
             task.title = self.request.data["title"]
             task.deadline = self.request.data["deadline"]
             task.description = self.request.data["description"]
             task.status = TaskStatuses.objects.get(id=self.request.data["status"])
             task.save()
+            return Response("Task edited")
         subtasks = Subtasks.objects.filter(task=task.id)
 
-        return Response("Task edited")
+        return Response("Task not edited")
 
     @action(detail=False, methods=["DELETE"], name="Delete Task")
     def delete(self, request):
