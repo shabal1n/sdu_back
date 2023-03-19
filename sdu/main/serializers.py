@@ -69,7 +69,7 @@ class UniqueValidator:
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ["url", "username", "email", "groups", "password"]
+        fields = ["username", "email"]
 
 class CoursesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -97,6 +97,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
+            "id",
             "username",
             "email",
             "year_of_study",

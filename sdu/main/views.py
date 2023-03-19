@@ -106,9 +106,9 @@ class TasksViewSet(viewsets.ModelViewSet):
             task.description = self.request.data["description"]
             task.status = TaskStatuses.objects.get(id=self.request.data["status"])
             task.save()
-            return Response("Task edited")
-        else:
-            return Response("You are not a supervisor")
+        subtasks = Subtasks.objects.filter(task=task.id)
+
+        return Response("Task edited")
 
     @action(detail=False, methods=["DELETE"], name="Delete Task")
     def delete(self, request):
@@ -239,3 +239,12 @@ class CoursesViewSet(viewsets.ModelViewSet):
             new_course.save()
             return Response("Course created")
         return Response("You are not a supervisor")
+
+class UsersSearchViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        search_query = self.request.data["query"]
+        if self.request.user.is_authenticated:
+            return User.objects.filter(username__icontains=search_query)[:10]
