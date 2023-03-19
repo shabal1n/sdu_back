@@ -427,30 +427,54 @@ class AnalyticsSerializer(serializers.ModelSerializer):
         return ProfileSerializer(obj.participants.all(), many=True).data
 
     def get_assigned_tasks(self, obj):
+        request = self.context.get("request")
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        if len(start_date) == 0:
+            start_date = datetime.datetime.now() - datetime.timedelta(days=30)
+        if len(end_date) == 0:
+            end_date = datetime.datetime.now()
+
         return Tasks.objects.filter(
             assigned_to=self.context["request"].user.profile,
             project=obj,
+            created_at__range=[start_date, end_date]
         ).count()
+        
 
     def get_completed_tasks(self, obj):
+        request = self.context.get("request")
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        if len(start_date) == 0:
+            start_date = datetime.datetime.now() - datetime.timedelta(days=30)
+        if len(end_date) == 0:
+            end_date = datetime.datetime.now()
+
         return Tasks.objects.filter(
             assigned_to=self.context["request"].user.profile,
-            status=3,
             project=obj,
+            completed_at__range=[start_date, end_date]
         ).count()
 
-    def get_tasks_count_by_days(self, obj):  # TODO check if correct
+    def get_tasks_count_by_days(self, obj):
+        request = self.context.get("request")
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+        if start_date:
+            start_date = datetime.datetime.now() - datetime.timedelta(days=30)
+        if end_date:
+            end_date = datetime.datetime.now()
+        
         tasks_of_project = Tasks.objects.filter(project=obj)
-        today_weekday = datetime.datetime.now()
         tasks_count_by_days = {}
-        for i in range(6, 0, -1):
-            day = today_weekday - datetime.timedelta(days=i)
-            tasks_count_by_days[day.weekday()] = tasks_of_project.filter(
-                created_at=day
+        while start_date <= end_date:
+            tasks_count_by_days[start_date.strftime('%m-%d')] = tasks_of_project.filter(
+                created_at=start_date
             ).count()
-        tasks_count_by_days[today_weekday.weekday()] = tasks_of_project.filter(
-            created_at=today_weekday
-        ).count()
+            start_date += datetime.timedelta(days=1)
         return tasks_count_by_days
 
 
