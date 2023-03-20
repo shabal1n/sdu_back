@@ -93,7 +93,7 @@ class Tasks(models.Model):
     created_at = models.DateField(blank=False, default=datetime.date.today)
     completed_at = models.DateField(blank=True, null=True)
     status = models.ForeignKey(TaskStatuses, blank=False, on_delete=models.CASCADE)
-    priority = models.OneToOneField(Priorities, blank=False, on_delete=models.CASCADE, default=1)
+    priority = models.ForeignKey(Priorities, blank=False, on_delete=models.CASCADE, default=1)
     
 
     def __str__(self):

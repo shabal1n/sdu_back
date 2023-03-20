@@ -92,6 +92,7 @@ class TasksViewSet(viewsets.ModelViewSet):
                 deadline=self.request.data["deadline"],
                 project=project,
                 status=TaskStatuses.objects.get(id=1),
+                priority=Priorities.objects.get(id=self.request.data["priority"]),
             )
             profiles = Profile.objects.filter(id__in=self.request.data["assigned_to"])
             for i in profiles:
@@ -103,7 +104,7 @@ class TasksViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["GET"], name="Get My Tasks")
     def my(self, request):
         profile = Profile.objects.get(user=self.request.user.id)
-        tasks = Tasks.objects.filter(project__participants=profile.id)
+        tasks = Tasks.objects.filter(project__participants__id=profile.id)
         serializer = self.get_serializer(tasks, many=True)
         return Response(serializer.data)
 
@@ -263,10 +264,11 @@ class CoursesViewSet(viewsets.ModelViewSet):
         return Response("You are not a supervisor")
 
 class UsersSearchViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
 
     def get_queryset(self):
         search_query = self.request.data["query"]
+        supervisor_filter = self.request.data["is_supervisor"]
         if self.request.user.is_authenticated:
-            return User.objects.filter(username__icontains=search_query)[:10]
+            return Profile.objects.filter(is_supervisor=supervisor_filter, user__username__icontains=search_query)[:10]

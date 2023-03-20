@@ -105,6 +105,11 @@ class ProjectsSerializer(serializers.ModelSerializer):
 
     def get_total_tasks(self, obj):
         return Tasks.objects.filter(project=obj).count()
+    
+class PrioritiesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Priorities
+        fields = "__all__"
 
 
 class TasksSerializer(serializers.ModelSerializer):
@@ -123,6 +128,7 @@ class TasksSerializer(serializers.ModelSerializer):
             "description",
             "project",
             "status",
+            "priority",
             "subtasks_quantity",
             "subtasks",
             "completed_subtasks_quantity",
@@ -144,6 +150,7 @@ class TasksSerializer(serializers.ModelSerializer):
     
     def get_subtasks(self, obj):
         return SubtasksSerializer(obj.subtasks_set.all(), many=True).data
+    
 
     def get_subtasks_quantity(self, obj):
         return Subtasks.objects.filter(task=obj).count()
