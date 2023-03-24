@@ -120,7 +120,7 @@ class TasksViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["GET"], name="Get Task Details")
     def details(self, request):
-        task = Tasks.objects.get(id=self.request.data["task_id"])
+        task = Tasks.objects.get(id=self.request.query_params.get("task_id"))
         serializer = TasksDetailSerializer(task)
         return Response(serializer.data)
 
@@ -251,7 +251,7 @@ class AnalyticsPageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         profile = Profile.objects.filter(user=self.request.user)
-        projects = Projects.objects.filter(id=self.request.data["project_id"])
+        projects = Projects.objects.filter(id=self.request.query_params.get("project_id"))
         return projects
 
     @action(detail=False, methods=["GET"], name="Get Analytics Data")

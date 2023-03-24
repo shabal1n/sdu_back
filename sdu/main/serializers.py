@@ -399,8 +399,8 @@ class AnalyticsSerializer(serializers.ModelSerializer):
 
     def get_assigned_tasks(self, obj):
         request = self.context.get("request")
-        start_date = request.data.get("start_date")
-        end_date = request.data.get("end_date")
+        start_date = request.query_params["start_date"]
+        end_date = request.query_params["end_date"]
         if len(start_date) == 0:
             start_date = datetime.datetime.now() - datetime.timedelta(days=30)
         if len(end_date) == 0:
@@ -415,8 +415,8 @@ class AnalyticsSerializer(serializers.ModelSerializer):
 
     def get_completed_tasks(self, obj):
         request = self.context.get("request")
-        start_date = request.data.get("start_date")
-        end_date = request.data.get("end_date")
+        start_date = request.query_params["start_date"]
+        end_date = request.query_params["end_date"]
         if len(start_date) == 0:
             start_date = datetime.datetime.now() - datetime.timedelta(days=30)
         if len(end_date) == 0:
@@ -430,8 +430,8 @@ class AnalyticsSerializer(serializers.ModelSerializer):
 
     def get_tasks_count_by_days(self, obj):
         request = self.context.get("request")
-        start_date = request.data.get("start_date")
-        end_date = request.data.get("end_date")
+        start_date = request.query_params["start_date"]
+        end_date = request.query_params["end_date"]
         start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
         end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
         if start_date:
