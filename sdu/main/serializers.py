@@ -343,8 +343,8 @@ class DashboardSerializer(serializers.ModelSerializer):
         return ProjectsSerializer(projects, many=True).data
 
     def get_students(self, obj):
-        if obj.is_supervisor == 1:
-            students = Profile.objects.filter(supervisor=obj.user)
+        if obj.is_supervisor:
+            students = Profile.objects.filter(supervisor=obj)
             return ProfileSerializer(students, many=True).data
         return False
 
