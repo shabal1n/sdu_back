@@ -50,9 +50,7 @@ class Profile(models.Model):
     )
     is_supervisor = models.BooleanField(default=False)
     picture_url = models.CharField(max_length=100, blank=True)
-    supervisor = models.ForeignKey(
-        User, related_name="supervisor", on_delete=models.CASCADE, null=True, blank=True
-    )
+    students = models.ManyToManyField("self", blank=True)
 
     def __str__(self):
         return self.user.username
