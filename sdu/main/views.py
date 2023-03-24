@@ -331,3 +331,37 @@ class SubtasksViewSet(viewsets.ModelViewSet):
             subtask.delete()
             return Response("Subtask deleted")
         return Response("Subtask not found")
+
+class StudentSupervisorViewSet(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        profile = Profile.objects.get(user=self.request.user.id)
+        if profile.is_supervisor:
+            return Profile.objects.filter(supervisor=profile)
+        return Profile.objects.none()
+
+    def create(self, request, *args, **kwargs):
+        profile = Profile.objects.get(user=self.request.user.id)
+        if profile.is_supervisor:
+            profile_student = Profile.objects.get(id=self.request.data["student_id"])
+            if profile_student.supervisor:
+                return Response("Student already has a supervisor")
+            else:
+                profile_student.supervisor = profile
+                profile_student.save()
+                return Response("Student added")
+        return Response("You are not a supervisor")
+    
+    def delete(self, request, *args, **kwargs):
+        profile = Profile.objects.get(user=self.request.user.id)
+        if profile.is_supervisor:
+            profile_student = Profile.objects.get(id=self.request.data["student_id"])
+            if profile_student.supervisor != profile:
+                return Response("Student does not have you as a supervisor")
+            else:
+                profile_student.supervisor = None
+                profile_student.save()
+            return Response("Student removed")
+        return Response("You are not a supervisor")
