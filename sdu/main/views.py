@@ -85,6 +85,7 @@ class TasksViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         profile = Profile.objects.get(user=self.request.user.id)
         project = Projects.objects.get(id=self.request.data["project"])
+
         if profile.is_supervisor and profile in project.participants.all():
             new_task = Tasks.objects.create(
                 title=self.request.data["title"],
@@ -94,10 +95,19 @@ class TasksViewSet(viewsets.ModelViewSet):
                 status=TaskStatuses.objects.get(id=1),
                 priority=Priorities.objects.get(id=self.request.data["priority"]),
             )
+            
             profiles = Profile.objects.filter(id__in=self.request.data["assigned_to"])
             for i in profiles:
                 new_task.assigned_to.add(i)
             new_task.save()
+
+            for i in self.request.data["subtasks"]:
+                new_subtask = Subtasks.objects.create(
+                    task=new_task,
+                    title=i.get("title"),
+                    is_completed=False
+                )
+                new_subtask.save()
             return Response({"success": True})
         return Response({"success": False})
 
@@ -128,8 +138,20 @@ class TasksViewSet(viewsets.ModelViewSet):
             task.description = self.request.data["description"]
             task.status = TaskStatuses.objects.get(id=self.request.data["status"])
             task.save()
+            for i in self.request.data["subtasks"]:
+                if i.get("id"):
+                    subtask = Subtasks.objects.get(id=i.get("id"))
+                    subtask.title = i.get("title")
+                    subtask.is_completed = i.get("is_completed")
+                    subtask.save()
+                else:
+                    new_subtask = Subtasks.objects.create(
+                        task=task,
+                        title=i.get("title"),
+                        is_completed=False
+                    )
+                    new_subtask.save()
             return Response("Task edited")
-        subtasks = Subtasks.objects.filter(task=task.id)
 
         return Response("Task not edited")
 
@@ -272,3 +294,40 @@ class UsersSearchViewSet(viewsets.ModelViewSet):
         supervisor_filter = self.request.data["is_supervisor"]
         if self.request.user.is_authenticated:
             return Profile.objects.filter(is_supervisor=supervisor_filter, user__username__icontains=search_query)[:10]
+
+class SubtasksViewSet(viewsets.ModelViewSet):
+    queryset = Subtasks.objects.all()
+    serializer_class = SubtasksSerializer
+
+    def get_queryset(self):
+        return Subtasks.objects.filter(task=self.request.data["task_id"])
+
+    def create(self, request, *args, **kwargs):
+        task = Tasks.objects.get(id=self.request.data["task_id"])
+        if task:
+            new_subtask = Subtasks.objects.create(
+                task=task,
+                title=self.request.data["title"],
+                is_completed=False
+            )
+            new_subtask.save()
+            return Response("Subtask created")
+        return Response("Task not found")
+
+    def update(self, request, *args, **kwargs):
+        subtask = Subtasks.objects.get(id=self.request.data["subtask_id"])
+        if subtask:
+            subtask.title = self.request.data["title"]
+            subtask.description = self.request.data["description"]
+            subtask.date = self.request.data["date"]
+            subtask.status = TaskStatuses.objects.get(id=self.request.data["status"])
+            subtask.save()
+            return Response("Subtask edited")
+        return Response("Subtask not found")
+
+    def destroy(self, request, *args, **kwargs):
+        subtask = Subtasks.objects.get(id=self.request.data["subtask_id"])
+        if subtask:
+            subtask.delete()
+            return Response("Subtask deleted")
+        return Response("Subtask not found")

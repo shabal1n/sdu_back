@@ -113,10 +113,11 @@ class PrioritiesSerializer(serializers.ModelSerializer):
 
 
 class TasksSerializer(serializers.ModelSerializer):
-    assigned_to = serializers.ListField(child=serializers.ListField())
+    assigned_to = ProfileSerializer(read_only=True, many=True)
     subtasks_quantity = serializers.SerializerMethodField()
     completed_subtasks_quantity = serializers.SerializerMethodField()
     subtasks = serializers.SerializerMethodField()
+    superviors = serializers.SerializerMethodField()
 
     class Meta:
         model = Tasks
@@ -132,6 +133,7 @@ class TasksSerializer(serializers.ModelSerializer):
             "subtasks_quantity",
             "subtasks",
             "completed_subtasks_quantity",
+            "superviors"
         ]
         extra_kwargs = {
             "title": {"required": True},
@@ -157,6 +159,14 @@ class TasksSerializer(serializers.ModelSerializer):
 
     def get_completed_subtasks_quantity(self, obj):
         return Subtasks.objects.filter(task=obj, is_completed=1).count()
+    
+    def get_superviors(self, obj):
+        supervisors = []
+        for profile in obj.project.participants.all():
+            if profile.is_supervisor:
+                supervisors.append(profile)
+        print(supervisors)
+        return ProfileSerializer(supervisors, many=True).data
 
     def create(self, validated_data):
         task = Tasks.objects.create(
@@ -174,8 +184,9 @@ class TasksSerializer(serializers.ModelSerializer):
 class SubtasksSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subtasks
-        fields = ["title", "task", "is_completed"]
+        fields = ["id", "title", "task", "is_completed"]
         extra_kwargs = {
+            "id": {"required": False},
             "title": {"required": True},
             "task": {"required": True},
             "is_completed": {"required": False},
