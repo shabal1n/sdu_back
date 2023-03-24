@@ -88,8 +88,8 @@ class ProjectsSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs["deadline"] < date.today():
             raise exceptions.ValidationError("Deadline cannot be in the past")
-        elif self.context["request"].user.profile.is_supervisor == 1:
-            raise exceptions.ValidationError("Only students can create projects")
+        elif self.context["request"].user.profile.is_supervisor == 0:
+            raise exceptions.ValidationError("Only supervisors can create projects")
         return attrs
 
     def create(self, validated_data):
