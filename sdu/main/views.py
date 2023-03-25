@@ -136,6 +136,7 @@ class TasksViewSet(viewsets.ModelViewSet):
             task.title = self.request.data["title"]
             task.deadline = self.request.data["deadline"]
             task.description = self.request.data["description"]
+            task.priority = Priorities.objects.get(id=self.request.data["priority"])
             task.status = TaskStatuses.objects.get(id=self.request.data["status"])
             task.save()
             for i in self.request.data["subtasks"]:

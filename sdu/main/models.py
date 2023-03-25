@@ -39,7 +39,6 @@ class UserStatuses(models.Model):
         return self.title
 
 def image_name(instance, filename):
-    print(os.path.join('profile_pics', filename))
     return os.path.join('profile_pics', filename)
 
 class Profile(models.Model):
