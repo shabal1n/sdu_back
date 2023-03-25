@@ -243,6 +243,17 @@ class ProfilePageView(viewsets.ModelViewSet):
                 return HttpResponse(
                     json.dumps({"status": "OK", "message": "Password changed"})
                 )
+            
+    @action(detail=False, methods=['POST'], name="Upload image")
+    def upload_image(self, request):
+        try:
+            file = request.data['file']
+        except KeyError:
+            return Response('Request has no resource file attached')
+        profile = Profile.objects.get(user=self.request.user.id)
+        profile.photo = file
+        profile.save()
+        return Response('Image uploaded successfully')
 
 
 class AnalyticsPageViewSet(viewsets.ModelViewSet):

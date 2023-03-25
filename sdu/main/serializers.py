@@ -56,7 +56,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "birth_date",
             "language",
             "course_of_study",
-            "picture_url",
+            "photo",
         ]
 
 

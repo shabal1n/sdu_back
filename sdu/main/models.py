@@ -1,4 +1,5 @@
 import datetime
+import os
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -37,10 +38,13 @@ class UserStatuses(models.Model):
     def __str__(self):
         return self.title
 
+def image_name(instance, filename):
+    print(os.path.join('profile_pics', filename))
+    return os.path.join('profile_pics', filename)
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    photo = models.ImageField(upload_to='profile_pics', blank=True)
+    photo = models.ImageField(upload_to=image_name, blank=True)
     year_of_study = models.CharField(blank=True, max_length=9)
     birth_date = models.CharField(blank=False, max_length=10)
     language = models.CharField(max_length=2, blank=False, default="en")
@@ -49,11 +53,11 @@ class Profile(models.Model):
         UserStatuses, blank=True, on_delete=models.CASCADE, default=1
     )
     is_supervisor = models.BooleanField(default=False)
-    picture_url = models.CharField(max_length=100, blank=True)
     supervisor = models.ForeignKey("self", on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return self.user.username
+    
 
 class Courses(models.Model):
     course_supervisor = models.ForeignKey(
