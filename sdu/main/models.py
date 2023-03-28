@@ -38,8 +38,10 @@ class UserStatuses(models.Model):
     def __str__(self):
         return self.title
 
+
 def image_name(instance, filename):
-    return os.path.join('profile_pics', filename)
+    return os.path.join("profile_pics", filename)
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -52,11 +54,13 @@ class Profile(models.Model):
         UserStatuses, blank=True, on_delete=models.CASCADE, default=1
     )
     is_supervisor = models.BooleanField(default=False)
-    supervisor = models.ForeignKey("self", on_delete=models.SET_NULL, blank=True, null=True)
+    supervisor = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, blank=True, null=True
+    )
 
     def __str__(self):
         return self.user.username
-    
+
 
 class Courses(models.Model):
     course_supervisor = models.ForeignKey(
@@ -66,6 +70,7 @@ class Courses(models.Model):
 
     def __str__(self):
         return self.title
+
 
 class Projects(models.Model):
     title = models.CharField(max_length=25, blank=False)
@@ -94,8 +99,9 @@ class Tasks(models.Model):
     created_at = models.DateField(blank=False, default=datetime.date.today)
     completed_at = models.DateField(blank=True, null=True)
     status = models.ForeignKey(TaskStatuses, blank=False, on_delete=models.CASCADE)
-    priority = models.ForeignKey(Priorities, blank=False, on_delete=models.CASCADE, default=1)
-    
+    priority = models.ForeignKey(
+        Priorities, blank=False, on_delete=models.CASCADE, default=1
+    )
 
     def __str__(self):
         return self.project.title + " " + self.title

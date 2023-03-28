@@ -18,7 +18,7 @@ SECRET_KEY = "django-insecure-t6k5qpz*#e^vn1kpjrj00vee1c_6+_((f5@9o02uu#804(d)f0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 APPEND_SLASH = False
 
@@ -99,8 +99,8 @@ DATABASES = {
     }
 }
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 
 # Password validation

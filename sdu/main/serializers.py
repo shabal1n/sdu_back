@@ -15,22 +15,19 @@ from sdu.main.validation import validateEmail, APIException200, UniqueValidator
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     profile_id = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = ["profile_id", "username", "email"]
-    
+
     def get_profile_id(self, obj):
         return Profile.objects.get(user=obj).id
+
 
 class CoursesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Courses
-        fields = [
-            "id",
-            "title",
-            "course_supervisor"
-        ]
-
+        fields = ["id", "title", "course_supervisor"]
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -105,7 +102,8 @@ class ProjectsSerializer(serializers.ModelSerializer):
 
     def get_total_tasks(self, obj):
         return Tasks.objects.filter(project=obj).count()
-    
+
+
 class PrioritiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Priorities
@@ -133,7 +131,7 @@ class TasksSerializer(serializers.ModelSerializer):
             "subtasks_quantity",
             "subtasks",
             "completed_subtasks_quantity",
-            "superviors"
+            "superviors",
         ]
         extra_kwargs = {
             "title": {"required": True},
@@ -149,17 +147,16 @@ class TasksSerializer(serializers.ModelSerializer):
         if self.context["request"].user.profile.is_supervisor == 0:
             raise exceptions.ValidationError("Only supervisors can create tasks")
         return attrs
-    
+
     def get_subtasks(self, obj):
         return SubtasksSerializer(obj.subtasks_set.all(), many=True).data
-    
 
     def get_subtasks_quantity(self, obj):
         return Subtasks.objects.filter(task=obj).count()
 
     def get_completed_subtasks_quantity(self, obj):
         return Subtasks.objects.filter(task=obj, is_completed=1).count()
-    
+
     def get_superviors(self, obj):
         supervisors = []
         for profile in obj.project.participants.all():
@@ -220,7 +217,6 @@ class ProfilePatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["birth_date", "course_of_study", "year_of_study"]
-        
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -228,38 +224,41 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
         token["username"] = user.username
-        token['email'] = user.email
+        token["email"] = user.email
         return token
-    
+
     def validate(self, attrs):
         userName = attrs.get("username")
         password = attrs.get("password")
-
 
         if validateEmail(userName) is True:
             try:
                 user = User.objects.get(email=userName)
                 if user.check_password(password):
-                    attrs['username'] = user.username
+                    attrs["username"] = user.username
 
             except User.DoesNotExist:
                 raise exceptions.AuthenticationFailed(
-                    'No such user with provided credentials'.title()) 
-        
+                    "No such user with provided credentials".title()
+                )
+
         data = super().validate(attrs)
         return data
 
 
-
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.CharField(
-        write_only=True, required=True, validators=[UniqueValidator(queryset=User.objects.all())]
+        write_only=True,
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())],
     )
 
-    password = serializers.CharField(
-        write_only=True, required=True, validators=None
+    password = serializers.CharField(write_only=True, required=True, validators=None)
+    username = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())],
     )
-    username = serializers.CharField(write_only=True, required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     password2 = serializers.CharField(write_only=True, required=True, validators=None)
     profile = ProfilePatchSerializer()
 
@@ -277,11 +276,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         min_length = 6
         password = attrs["password"]
         if password != attrs["password2"]:
-            raise APIException200(detail={"status":"error", "error": {"password": "Passwords must match!!"}})
+            raise APIException200(
+                detail={
+                    "status": "error",
+                    "error": {"password": "Passwords must match!!"},
+                }
+            )
         if len(password) < min_length:
-            raise APIException200(detail={"status":"error", "error": {"password": "Passwords length must be more than 6."}})
+            raise APIException200(
+                detail={
+                    "status": "error",
+                    "error": {"password": "Passwords length must be more than 6."},
+                }
+            )
         return attrs
-    
+
     def create(self, validated_data):
         user = User.objects.create(
             username=validated_data.pop("username"), email=validated_data["email"]
@@ -317,7 +326,7 @@ class DashboardSerializer(serializers.ModelSerializer):
 
     def get_username(self, obj):
         return self.context["request"].user.username
-    
+
     def get_email(self, obj):
         return self.context["request"].user.email
 
@@ -409,9 +418,8 @@ class AnalyticsSerializer(serializers.ModelSerializer):
         return Tasks.objects.filter(
             assigned_to=self.context["request"].user.profile,
             project=obj,
-            created_at__range=[start_date, end_date]
+            created_at__range=[start_date, end_date],
         ).count()
-        
 
     def get_completed_tasks(self, obj):
         request = self.context.get("request")
@@ -425,24 +433,24 @@ class AnalyticsSerializer(serializers.ModelSerializer):
         return Tasks.objects.filter(
             assigned_to=self.context["request"].user.profile,
             project=obj,
-            completed_at__range=[start_date, end_date]
+            completed_at__range=[start_date, end_date],
         ).count()
 
     def get_tasks_count_by_days(self, obj):
         request = self.context.get("request")
         start_date = request.query_params["start_date"]
         end_date = request.query_params["end_date"]
-        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
-        end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+        start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
         if start_date:
             start_date = datetime.datetime.now() - datetime.timedelta(days=30)
         if end_date:
             end_date = datetime.datetime.now()
-        
+
         tasks_of_project = Tasks.objects.filter(project=obj)
         tasks_count_by_days = {}
         while start_date <= end_date:
-            tasks_count_by_days[start_date.strftime('%m-%d')] = tasks_of_project.filter(
+            tasks_count_by_days[start_date.strftime("%m-%d")] = tasks_of_project.filter(
                 created_at=start_date
             ).count()
             start_date += datetime.timedelta(days=1)

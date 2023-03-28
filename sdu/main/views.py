@@ -81,7 +81,7 @@ class TasksViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Tasks.objects.filter(project=self.request.data["project_id"])
-    
+
     def create(self, request, *args, **kwargs):
         profile = Profile.objects.get(user=self.request.user.id)
         project = Projects.objects.get(id=self.request.data["project"])
@@ -95,7 +95,7 @@ class TasksViewSet(viewsets.ModelViewSet):
                 status=TaskStatuses.objects.get(id=1),
                 priority=Priorities.objects.get(id=self.request.data["priority"]),
             )
-            
+
             profiles = Profile.objects.filter(id__in=self.request.data["assigned_to"])
             for i in profiles:
                 new_task.assigned_to.add(i)
@@ -103,9 +103,7 @@ class TasksViewSet(viewsets.ModelViewSet):
 
             for i in self.request.data["subtasks"]:
                 new_subtask = Subtasks.objects.create(
-                    task=new_task,
-                    title=i.get("title"),
-                    is_completed=False
+                    task=new_task, title=i.get("title"), is_completed=False
                 )
                 new_subtask.save()
             return Response({"success": True})
@@ -147,9 +145,7 @@ class TasksViewSet(viewsets.ModelViewSet):
                     subtask.save()
                 else:
                     new_subtask = Subtasks.objects.create(
-                        task=task,
-                        title=i.get("title"),
-                        is_completed=False
+                        task=task, title=i.get("title"), is_completed=False
                     )
                     new_subtask.save()
             return Response("Task edited")
@@ -244,17 +240,17 @@ class ProfilePageView(viewsets.ModelViewSet):
                 return HttpResponse(
                     json.dumps({"status": "OK", "message": "Password changed"})
                 )
-            
-    @action(detail=False, methods=['POST'], name="Upload image")
+
+    @action(detail=False, methods=["POST"], name="Upload image")
     def upload_image(self, request):
         try:
-            file = request.data['file']
+            file = request.data["file"]
         except KeyError:
-            return Response('Request has no resource file attached')
+            return Response("Request has no resource file attached")
         profile = Profile.objects.get(user=self.request.user.id)
         profile.photo = file
         profile.save()
-        return Response('Image uploaded successfully')
+        return Response("Image uploaded successfully")
 
 
 class AnalyticsPageViewSet(viewsets.ModelViewSet):
@@ -263,7 +259,9 @@ class AnalyticsPageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         profile = Profile.objects.filter(user=self.request.user)
-        projects = Projects.objects.filter(id=self.request.query_params.get("project_id"))
+        projects = Projects.objects.filter(
+            id=self.request.query_params.get("project_id")
+        )
         return projects
 
     @action(detail=False, methods=["GET"], name="Get Analytics Data")
@@ -297,6 +295,7 @@ class CoursesViewSet(viewsets.ModelViewSet):
             return Response("Course created")
         return Response("You are not a supervisor")
 
+
 class UsersSearchViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
@@ -305,7 +304,10 @@ class UsersSearchViewSet(viewsets.ModelViewSet):
         search_query = self.request.data["query"]
         supervisor_filter = self.request.data["is_supervisor"]
         if self.request.user.is_authenticated:
-            return Profile.objects.filter(is_supervisor=supervisor_filter, user__username__icontains=search_query)[:10]
+            return Profile.objects.filter(
+                is_supervisor=supervisor_filter, user__username__icontains=search_query
+            )[:10]
+
 
 class SubtasksViewSet(viewsets.ModelViewSet):
     queryset = Subtasks.objects.all()
@@ -318,9 +320,7 @@ class SubtasksViewSet(viewsets.ModelViewSet):
         task = Tasks.objects.get(id=self.request.data["task_id"])
         if task:
             new_subtask = Subtasks.objects.create(
-                task=task,
-                title=self.request.data["title"],
-                is_completed=False
+                task=task, title=self.request.data["title"], is_completed=False
             )
             new_subtask.save()
             return Response("Subtask created")
@@ -344,6 +344,7 @@ class SubtasksViewSet(viewsets.ModelViewSet):
             return Response("Subtask deleted")
         return Response("Subtask not found")
 
+
 class StudentSupervisorViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
@@ -365,7 +366,7 @@ class StudentSupervisorViewSet(viewsets.ModelViewSet):
                 profile_student.save()
                 return Response("Student added")
         return Response("You are not a supervisor")
-    
+
     def delete(self, request, *args, **kwargs):
         profile = Profile.objects.get(user=self.request.user.id)
         if profile.is_supervisor:
