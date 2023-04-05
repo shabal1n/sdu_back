@@ -18,6 +18,7 @@ from rest_framework.response import Response
 from django.http import HttpResponse
 import json
 from rest_framework import generics
+from sdu.main.recommendation import *
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -378,3 +379,11 @@ class StudentSupervisorViewSet(viewsets.ModelViewSet):
                 profile_student.save()
             return Response("Student removed")
         return Response("You are not a supervisor")
+
+class RecommendationsViewSet(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        profile = Profile.objects.get(user=self.request.user.id)
+        return recommendation(profile)

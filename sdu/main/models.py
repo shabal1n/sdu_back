@@ -79,6 +79,9 @@ class Projects(models.Model):
     course = models.ForeignKey(Courses, on_delete=models.CASCADE)
     participants = models.ManyToManyField(Profile)
 
+    def get_participants(self):
+        return list(self.participants.all().values_list('id', flat=True))
+
     def __str__(self):
         return self.title + " " + self.course.title
 

@@ -20,6 +20,7 @@ router.register(r"courses", views.CoursesViewSet)
 router.register(r"search_users", views.UsersSearchViewSet)
 router.register(r"subtasks", views.SubtasksViewSet)
 router.register(r"supervisor", views.StudentSupervisorViewSet)
+router.register(r"recommendation", views.RecommendationsViewSet)
 
 schema_view = get_schema_view(
     openapi.Info(
