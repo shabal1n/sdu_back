@@ -8,6 +8,7 @@ from drf_yasg import openapi
 from rest_framework_simplejwt.views import TokenRefreshView
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import TokenBlacklistView
 
 
 router = routers.DefaultRouter()
@@ -43,6 +44,7 @@ urlpatterns = [
     path("login/", views.MyObtainTokenPairView.as_view(), name="token_obtain_pair"),
     path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("register/", views.RegisterView.as_view(), name="auth_register"),
+    path("logout/", TokenBlacklistView.as_view(), name="logout"),
     path(
         "schema/",
         schema_view.with_ui("swagger", cache_timeout=0),
