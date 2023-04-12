@@ -202,12 +202,19 @@ class ProfilePageView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user.id)
+    
 
     @action(detail=False, methods=["POST"], name="Change Status")
     def change_status(self, request):
         profile = Profile.objects.get(user=self.request.user.id)
         profile.status = UserStatuses.objects.get(id=self.request.data["status"])
         profile.save()
+        serializer = self.get_serializer(profile)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=["GET"], name="Get student by ID")
+    def get_student(self, request):
+        profile = Profile.objects.get(id=self.request.query_params.get("id"))
         serializer = self.get_serializer(profile)
         return Response(serializer.data)
 
