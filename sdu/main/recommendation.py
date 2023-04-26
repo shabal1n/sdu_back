@@ -11,7 +11,7 @@ def profile_to_df(profile):
         curr_user_dict["profile_id"].append(profile.id)
         curr_user_dict["project_id"].append(i.id)
         curr_user_dict["course_id"].append(i.course_id)
-    df = pd.DataFrame(curr_user_dict, index=[0])
+    df = pd.DataFrame(curr_user_dict)
     return df
 
 
