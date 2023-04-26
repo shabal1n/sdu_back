@@ -7,11 +7,15 @@ from sdu.main.models import Profile, Projects
 def profile_to_df(profile):
     projects = Projects.objects.filter(participants=profile.id)
     curr_user_dict = {"profile_id": [], "project_id": [], "course_id": []}
+    indexes = []
+    counter = 0
     for i in projects:
         curr_user_dict["profile_id"].append(profile.id)
         curr_user_dict["project_id"].append(i.id)
         curr_user_dict["course_id"].append(i.course_id)
-    df = pd.DataFrame(curr_user_dict)
+        indexes.append(counter)
+        counter+=1
+    df = pd.DataFrame(curr_user_dict, index=indexes)
     return df
 
 
